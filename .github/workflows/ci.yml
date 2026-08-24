@@ -30,7 +30,7 @@ jobs:
     name: gate (${{ matrix.os }})
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install PSScriptAnalyzer + Pester
         shell: pwsh
@@ -44,7 +44,7 @@ jobs:
 
       - name: Upload analyzer output (on failure)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: psscriptanalyzer-${{ matrix.os }}
           path: |
