@@ -1,4 +1,4 @@
-# Win11 Gaming Toolkit
+# TweakEazy
 
 Windows 11 gaming tweaks you can undo. Every tweak says what it does to anti-cheat, whether you need a reboot, and whether it touches the disk.
 
