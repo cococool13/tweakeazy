@@ -1,7 +1,7 @@
 # site/
 
 The toolkit's landing page. Live at
-[tweakeazy.pages.dev](https://tweakeazy.pages.dev).
+[tweakeazy-site.cohencool.workers.dev](https://tweakeazy-site.cohencool.workers.dev).
 
 Hand-written HTML, CSS and JS — no build step, no dependencies. What is in
 this folder is exactly what gets served.
