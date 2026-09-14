@@ -22,6 +22,7 @@ warning text, phase headings. Below is what must run on Windows.
 | 5 | Phases 11–14 run | Customization, Defender exclusions, debloat, temp cleanup all proceed. |
 | 6 | `Get-ToolkitManifest` | `state.steps['phase9-windows-update'].status` = `skipped`. Same for `phase10-security-tradeoffs`. |
 | 7 | `Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity' -ErrorAction SilentlyContinue` | `Enabled` value unchanged (HVCI is NOT disabled by default run). |
+| 8 | Summary | Does **not** print that Windows Update suppression / security trade-offs ran. |
 
 ## Run with -IncludeSecurityTradeoffs
 
@@ -30,10 +31,11 @@ warning text, phase headings. Below is what must run on Windows.
 | 1 | `pwsh -File ...\APPLY-EVERYTHING.ps1 -IncludeSecurityTradeoffs` | Standard pre-confirm, then **second** UI-Confirm explicitly listing BattlEye/EAC + Windows-Update warnings. Press Enter. |
 | 2 | Phase 9 runs | wuauserv / UsoSvc / DoSvc disabled. WaaSMedicSvc warning may appear on 24H2+ (expected — DACL block). |
 | 3 | Phase 10 runs | Red `[!] ANTI-CHEAT` lines appear before any Run-Step. Then HVCI, VBS, LSA, Spectre keys written. |
-| 4 | `Get-ToolkitManifest` | `state.registry['reg:HVCIEnabled'].before.value` captured. |
-| 5 | Reboot. Try to launch R6 Siege or any BattlEye-protected title. | Title launches OR fails — both are valid; the warning told you it might. |
-| 6 | `pwsh -File ...\REVERT-EVERYTHING.ps1` | All tradeoff writes restored to captured before-state. |
-| 7 | Reboot. Verify HVCI/VBS back on via `msinfo32` → Virtualization-based security = Running. | Yes. |
+| 4 | Summary | Prints that Windows Update suppression and security trade-off tweaks ran. |
+| 5 | `Get-ToolkitManifest` | `state.registry['reg:HVCIEnabled'].before.value` captured. |
+| 6 | Reboot. Try to launch R6 Siege or any BattlEye-protected title. | Title launches OR fails — both are valid; the warning told you it might. |
+| 7 | `pwsh -File ...\REVERT-EVERYTHING.ps1` | All tradeoff writes restored to captured before-state. |
+| 8 | Reboot. Verify HVCI/VBS back on via `msinfo32` → Virtualization-based security = Running. | Yes. |
 
 ## Idempotency
 

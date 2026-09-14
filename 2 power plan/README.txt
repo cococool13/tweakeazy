@@ -7,9 +7,10 @@ What this does:
   features that can cause micro-stutters during gaming.
 
 How to use:
-  1. Right-click "enable-ultimate-performance.bat"
-  2. Select "Run as administrator"
-  3. Done! The plan is now active.
+  1. Run configure-power.ps1 as Administrator (launcher [2], or
+     right-click > Run with PowerShell).
+  2. The script unhides Ultimate Performance, activates it, and
+     records the prior plan in the toolkit manifest.
 
 What it changes:
   - CPU minimum state: 100% (no downclocking)
@@ -18,8 +19,8 @@ What it changes:
   - PCI Express link state: Off (no power saving on GPU bus)
 
 To revert:
-  Open Settings > System > Power > Power mode
-  Select "Balanced" (the Windows default)
+  Run revert-power.ps1 as Administrator. It restores the captured
+  prior plan, or Balanced if no capture exists.
   Or run in admin Command Prompt:
     powercfg -setactive SCHEME_BALANCED
 

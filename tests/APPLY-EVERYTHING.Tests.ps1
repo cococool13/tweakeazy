@@ -145,6 +145,26 @@ Describe 'APPLY-EVERYTHING.ps1 — surface contract' {
             # second confirm gates the actual run.
             $script:Content | Should -Match 'if\s*\(\s*\$IncludeSecurityTradeoffs\s*\)\s*\{[^}]*UI-Confirm'
         }
+
+        It 'gates the APPLY summary trade-off note on IncludeSecurityTradeoffs' {
+            $idx = $script:Content.LastIndexOf('This run included Windows Update suppression')
+            $idx | Should -BeGreaterThan -1
+            $start = [Math]::Max(0, $idx - 250)
+            $window = $script:Content.Substring($start, [Math]::Min(400, $script:Content.Length - $start))
+            $window | Should -Match 'if\s*\(\s*\$IncludeSecurityTradeoffs\s*\)'
+        }
+
+        It 'does not point DDU follow-up at a dead launcher [G] key' {
+            $script:Content | Should -Not -Match 'launcher \[G\]'
+        }
+
+        It 'points Phase 7.5 DDU skip at DduAuto.ps1 or launcher category 6' {
+            $idx = $script:Content.IndexOf('Phase 7.5: GPU Driver Flow')
+            $idx | Should -BeGreaterThan -1
+            $window = $script:Content.Substring($idx, [Math]::Min(800, $script:Content.Length - $idx))
+            $window | Should -Match 'DduAuto\.ps1'
+            $window | Should -Match 'category 6'
+        }
     }
 
     Context 'Phase headings present' {
