@@ -33,11 +33,15 @@ Goal: confirm the full apply flow lands without errors and writes a manifest.
 .\APPLY-EVERYTHING.ps1
 ```
 
+Default run is Safe + Advanced only. Phases 9–10 (Windows Update
+suppression, VBS / HVCI / LSA / Spectre) stay skipped unless you pass
+`-IncludeSecurityTradeoffs`.
+
 Expectation:
 - Profile section prints accurately (manufacturer / model / power state / GPU count / domain).
 - Confirm prompts as expected. Press Enter through them.
 - Each step prints `Done` / `Skipped` / `Failed`.
-- Final summary: `Failed: 0`. `Skipped` may be non-zero on hardware that doesn't support a step (no AMD GPU → skip, etc.).
+- Final summary: `Failed: 0`. `Skipped` may be non-zero on hardware that doesn't support a step (no AMD GPU → skip, etc.). Phase 9 and 10 should report skipped on a default run.
 - Manifest exists at `$env:ProgramData\Win11GamingToolkit\state\manifest.json`.
 
 Spot checks against bug fixes A1–A10:
@@ -48,7 +52,7 @@ Spot checks against bug fixes A1–A10:
 | GPU MSI mode targets only real GPUs | `(Get-Content manifest.json \| ConvertFrom-Json).registry \| Get-Member -Type NoteProperty \| Where Name -like 'gpu-msi:*'` returns only NVIDIA / AMD / Intel adapter IDs, not Microsoft Basic / IDD. (A2) |
 | inetpub guard | If IIS-WebServer is enabled on the test VM, the apply step prints "Skipping inetpub removal: IIS appears installed." (A4) |
 | `visual-effects-performance.reg` | If you also import this file directly, registry inspect of `HKCU\Control Panel\Desktop\UserPreferencesMask` should be REG_BINARY type. (A1) |
-| Spectre / Meltdown applied | `Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management' -Name FeatureSettingsOverride*` shows both keys = 3. |
+| Spectre / Meltdown **not** applied on default run | `FeatureSettingsOverride*` unchanged. Both keys = 3 only after `.\APPLY-EVERYTHING.ps1 -IncludeSecurityTradeoffs`. |
 | MPO disabled | `Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' -Name OverlayTestMode` returns 5. |
 
 ## 3. Verify post-apply
@@ -105,7 +109,13 @@ For each menu key, click it once on a fresh VM snapshot and confirm:
 - It prints UI helpers correctly (no missing `UI-Step` errors).
 - It exits cleanly back to the launcher.
 
-Menu keys to exercise: `0..9`, `A`, `R`, `V`, `D`, `G`, `W`.
+Menu keys to exercise (live `launcher.ps1`):
+
+- Categories: `0`, `1`, `2`, `4`–`13` (no `3`; privacy/telemetry is under `5`)
+- Quick actions: `A`, `V`, `R`
+- Tools: `M`, `L`, `B`, `?`, `Q`
+
+`[A]` prompts for Security Trade-offs before calling `APPLY-EVERYTHING.ps1`; default is No. There are no `D`, `G`, or `W` keys.
 
 ## 8. New script exercise (Phase B)
 
@@ -140,7 +150,7 @@ Goal: confirm DNS capture, verification, and revert preserve both IPv4 and IPv6 
 ## 10. Edge cases
 
 ### Domain-joined PC
-Set the VM domain-joined (or set `partOfDomain = $true` synthetically by joining a test domain). Re-run apply. The launcher should surface the domain warning. Update suppression and Defender exclusions still apply. Document the per-step behavior so this can be turned into "soft skip" later if the user wants.
+Set the VM domain-joined (or set `partOfDomain = $true` synthetically by joining a test domain). Re-run apply. The launcher should surface the domain warning. Defender exclusions still apply. Update suppression runs only with `-IncludeSecurityTradeoffs`. Document the per-step behavior so this can be turned into "soft skip" later if the user wants.
 
 ### Battery laptop
 On a Surface / laptop test VM, the launcher should surface the laptop warning. The Ultimate Performance plan still activates if the user proceeds. Confirm thermal / battery throttling stops as expected. Switch back to Balanced manually for normal use.

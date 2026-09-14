@@ -34,12 +34,15 @@ recorded. Below the header are three sections:
 All. These call `APPLY-EVERYTHING.ps1`, `10 verify\verify-tweaks.ps1`,
 and `REVERT-EVERYTHING.ps1` directly.
 
-**Categories** — `[0]` through `[10]` open per-folder submenus that
-list every tweak script in that folder. Each category shows a risk
-tier (`Safe` / `Advanced` / `Trade-off`) and, when the manifest knows,
-a status indicator: `[OK] applied` if a tweak from this category is
-recorded, or `! drift` if a tracked tweak's underlying registry value
-has reverted to its pre-toolkit state outside the toolkit.
+**Categories** — `[0]` `[1]` `[2]` `[4]`–`[13]` open per-folder
+submenus (no `[3]`; privacy/telemetry lives in `[5]`). Each category
+shows a risk tier (`Safe` / `Advanced` / `Trade-off`) and, when the
+manifest knows, a status indicator: `[OK] applied` if a tweak from
+this category is recorded, or `! drift` if a tracked tweak's
+underlying registry value has reverted to its pre-toolkit state
+outside the toolkit. `[11]` Hardware checks, `[12]` Hardware, and
+`[13]` External tools have no tracked step prefixes — they never
+show applied/drift.
 
 **Tools** — `[M]` opens `manifest.json` in the default editor; `[L]`
 tails the newest log under `%ProgramData%\Win11GamingToolkit\logs`;
@@ -59,17 +62,20 @@ Run:
 .\APPLY-EVERYTHING.ps1
 ```
 
-Use this only when you already understand the trade-offs. It includes:
+Use this only when you already understand the trade-offs. The default
+run is Safe + Advanced only:
 
 - power and Windows tuning
 - service and registry changes
 - startup cleanup
 - GPU MSI mode and network tuning
-- Windows Update suppression
-- VBS / HVCI / LSA trade-offs
 - shell customization
 - Defender exclusions
 - app debloat and temp cleanup
+
+Windows Update suppression and VBS / HVCI / LSA / Spectre stay **off**
+unless you pass `-IncludeSecurityTradeoffs`, or answer Yes to the
+launcher `[A]` prompt (default No).
 
 ### Rollback path
 
@@ -99,7 +105,7 @@ This checks the same phases exposed by the launcher and the full apply flow so y
 | `1 backup/create-backup.ps1` | You want a restore point and registry backup first | Low | Restore point and exported registry files |
 | `0 prerequisites/install-runtimes.ps1` | Games are missing VC++ or legacy DirectX runtimes | Low | Uninstall from Apps / Features |
 | `2 power plan/configure-power.ps1` | You want the performance power baseline only | Low to medium | Switch back to Balanced |
-| `4 services/disable-services.ps1` | You want service changes without the full stack | Medium | `4 services/revert-all.bat` or full revert |
+| `4 services/disable-services.ps1` | You want service changes without the full stack | Medium | `4 services/enable-services.ps1` or full revert |
 | `5 registry tweaks/apply-all.reg` | You want the raw registry pack | Medium | `5 registry tweaks/revert-all.reg` or full revert |
 | `6 gpu/install-gpu-driver.ps1` | You want the clean GPU driver path | Medium to high | DDU + reinstall / full revert for tracked settings |
 | `8 security vs performance/configure-vbs.ps1` | You want the security trade-off step only | High | Re-enable via the same folder or full revert |
@@ -137,7 +143,7 @@ This checks the same phases exposed by the launcher and the full apply flow so y
 - What it changes: disables selected background services.
 - Why run it: reduces unnecessary background work on gaming-focused systems.
 - Main risk: features like printing, search indexing, Offline Files / Sync Center, and telemetry-related components may stop working as expected.
-- Undo: `4 services/revert-all.bat` or the full revert script.
+- Undo: `4 services/enable-services.ps1` or `REVERT-EVERYTHING.ps1`.
 
 #### Registry pack
 
@@ -215,9 +221,13 @@ This checks the same phases exposed by the launcher and the full apply flow so y
 
 #### Apply Everything
 
-- What it changes: runs the aggressive full stack across all phases.
-- Why run it: fastest route to the maximum scripted tuning pass.
-- Main risk: combines every compatibility and security trade-off in the repo.
+- What it changes: runs the aggressive Safe + Advanced stack. Phases 9
+  (Windows Update suppression) and 10 (VBS / HVCI / LSA / Spectre) stay
+  skipped unless `-IncludeSecurityTradeoffs` is passed. Launcher `[A]`
+  asks first; default is No.
+- Why run it: fastest route to the scripted tuning pass.
+- Main risk: broad compatibility surface. Security Trade-offs are not
+  in the default run.
 - Undo: `REVERT-EVERYTHING.ps1`.
 
 #### Revert Everything
@@ -248,6 +258,9 @@ Use this map when you want to open folders directly instead of using the launche
 - `8 security vs performance/` VBS / HVCI trade-off scripts
 - `9 cleanup/` debloat, temp cleanup, WinUtil wrapper
 - `10 verify/` state inspection and health checks
+- `11 hardware checks/` read-only storage / UWP / system summary
+- `12 hardware/` read-only ReBAR, MSI, RAM, polling, stress wrappers
+- `13 external tools/` launchers for signed third-party GUIs (not tracked)
 - `lib/` shared PowerShell helpers and manifest/state tracking
 
 ## Troubleshooting
