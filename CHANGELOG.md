@@ -8,6 +8,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clean a hard precondition for every script. Baseline at session start: 1537 PSScriptAnalyzer findings (3 Error, 1415 Warning, 119 Info).
 
+### Removed
+- Spent one-shot agent prompts `prompts/cleanup-and-redesign.md` and `prompts/production-readiness.md`. Outcomes already recorded in `CLEANUP.md` and `PRODUCTION-READY.md`. Those files are not live instructions; the current Cloudflare landing page is `site/` and must not be deleted.
+
 ### Added
 - `.psscriptanalyzer.psd1` project ruleset — PS 5.1+7.4 compatibility targets, formatter rules, explicit exclusions with documented rationale per excluded rule. (`bbd2a56`)
 - `tools/Invoke-ToolkitGate.ps1` — single quality-gate entrypoint reproducible locally and in CI. Supports `-Strict`, `-SkipTests`, `-SkipAnalyzer`, scoped `-Path`. (`bbd2a56`)

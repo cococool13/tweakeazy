@@ -1,8 +1,9 @@
 # Cleanup + Launcher Redesign
 
-Outcome of executing `prompts/cleanup-and-redesign.md`. Each phase landed
-in its own commit cluster on `main`. Branches consumed by the merge
-were deleted; one safety-net branch (`CC/salvage-pre-cleanup`) was kept.
+Outcome of a spent cleanup-and-redesign one-shot (prompt retired; this file
+is the record). Each phase landed in its own commit cluster on `main`.
+Branches consumed by the merge were deleted; one safety-net branch
+(`CC/salvage-pre-cleanup`) was kept.
 
 ## Branches
 
@@ -53,7 +54,7 @@ The merged tree is disciplined: every numbered folder has functional pair covera
 
 ## Launcher
 
-`launcher.ps1` was rewritten end-to-end (562 insertions, 137 deletions) to match the spec at `prompts/cleanup-and-redesign.md` lines 70–155.
+`launcher.ps1` was rewritten end-to-end (562 insertions, 137 deletions) to match the retired cleanup-prompt spec (Phase 4 launcher redesign).
 
 **Header**
 - Title + version on the top line; admin state, OS build, and manifest entry count on the second line.
@@ -93,7 +94,7 @@ The merged tree is disciplined: every numbered folder has functional pair covera
 
 ## Design deviations
 
-The prompt's example main menu (`prompts/cleanup-and-redesign.md` lines 89–99) lists `[3] Privacy / telemetry` as a category. The repo's numbered-folder layout has folders `0 1 2 4 5 6 7 8 9 10` — there is no `3 privacy/`. Privacy / telemetry tweaks live inside `5 registry tweaks/individual/` (`privacy-telemetry.reg`, `disable-edge-background.ps1`, `disable-windows-update.ps1`, etc.).
+The retired cleanup prompt's example main menu listed `[3] Privacy / telemetry` as a category. The repo's numbered-folder layout has folders `0 1 2 4 5 6 7 8 9 10` — there is no `3 privacy/`. Privacy / telemetry tweaks live inside `5 registry tweaks/individual/` (`privacy-telemetry.reg`, `disable-edge-background.ps1`, `disable-windows-update.ps1`, etc.).
 
 Creating a new `3 privacy/` folder and moving those files would have required updating every reference in `APPLY-EVERYTHING.ps1`, `REVERT-EVERYTHING.ps1`, `10 verify/verify-tweaks.ps1`, every README, and `docs/freethy-integration.md`. That crosses the prompt's "scope creep" line, so `[3]` is omitted from the main menu in v1. Privacy/telemetry tweaks remain reachable via `[5] Registry tweaks` → submenu.
 
@@ -105,7 +106,7 @@ End-to-end testing on macOS (no Windows VM available; documented fallback per `C
 
 - All 12 top-level / `lib/` PowerShell scripts parse cleanly via `pwsh` (`APPLY-EVERYTHING.ps1`, `REVERT-EVERYTHING.ps1`, `10 verify/verify-tweaks.ps1`, `launcher.ps1`, `DduManual.ps1`, `DduAuto.ps1`, every file in `lib/`).
 - Every `[A]` / `[V]` / `[R]` / `[0]` / `[1]` / `[2]` / `[4]` / `[5]` / `[6]` / `[7]` / `[8]` / `[9]` / `[10]` dispatch path resolves to an existing file or directory in the merged tree.
-- Zero residual `website/` references in tracked files outside `CHANGES.md` (intentional historical mention) and `prompts/cleanup-and-redesign.md` (the spec itself).
+- Zero residual `website/` references in tracked files outside `CHANGES.md` (intentional historical mention). The live Cloudflare landing page is `site/` and was never in scope for that cleanup.
 - The `lib/version-manifest.ps1` GitHub raw URL (`https://raw.githubusercontent.com/cococool13/TweakEazy/main/versions.json`) is functional and unrelated to the deleted website folder; it stays.
 - `git ls-tree -r --name-only main` went from 125 (pre-merge) → 155 (post-merge) → 125 (post-website-removal) → 124 (post-launcher-rewrite, after `lib/launcher-menu.ps1` deletion).
 

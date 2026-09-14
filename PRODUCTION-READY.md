@@ -1,6 +1,6 @@
 # Production Readiness Report — v1.0.0
 
-Outcome of executing `prompts/production-readiness.md` against `main`. The release tag follows once `MANUAL-TEST-CHECKLIST.md` is run on a Win11 host and updated with a pass row.
+Outcome of a spent production-readiness one-shot (prompt retired; this file is the record) against `main`. The release tag follows once `MANUAL-TEST-CHECKLIST.md` is run on a Win11 host and updated with a pass row.
 
 ## Decisions
 
@@ -18,7 +18,7 @@ These are the choices the audit made when the prompt left them open. Each is doc
 | # | Check | Result | Evidence |
 |---|---|---|---|
 | 1 | Merge sanity (`git log --oneline main~30..main`) | PASS | 30 commits visible, all conventional (`feat:`, `fix:`, `docs:`, `chore:`). Zero `wip`, zero forced merges, zero partial reverts. |
-| 2 | `lib/launcher-menu.ps1` orphan deletion | PASS | `git log` shows three commits touching the file (creation in `cd81821`, salvage in `c7e856c`, deletion in `7be145f`). Zero current code references; only `CLEANUP.md` and `prompts/production-readiness.md` mention the path historically. |
+| 2 | `lib/launcher-menu.ps1` orphan deletion | PASS | `git log` shows three commits touching the file (creation in `cd81821`, salvage in `c7e856c`, deletion in `7be145f`). Zero current code references; only `CLEANUP.md` mentions the path historically. |
 | 3 | `$script:ToolkitLogRoot` consumed correctly | PASS | Defined once in `lib/toolkit-state.ps1:9`; surfaced via `Get-ToolkitLogRoot` in `lib/toolkit-state.ps1:16`; consumed in `launcher.ps1:454` (the `[L] View recent log` action). No legacy export shape remains. |
 | 4 | Website residue grep | FAIL → fixed in `2a35ce7` | `.claude/launch.json:7` referenced `npm run dev --prefix website`. Stale VS Code-style debug config for the deleted landing page. Removed entire file (only entry was the website debugger). The other three grep hits (`5 registry tweaks/apply-all.reg:220`, `5 registry tweaks/individual/privacy-telemetry.reg:98`, `8 security vs performance/README.txt:51`) are English-language usage of the word "website", unrelated to the deleted directory. |
 | 5 | Tier string consistency | FAIL → fixed in `b36d773` | `10 verify/verify-tweaks.ps1:353` emitted `Security-tradeoff` (lowercase, hyphenated). Corrected to canonical `Security Trade-off`. The `launcher.ps1:177` short-form `Trade-off` is correct (display-only translation). |
