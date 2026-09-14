@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clean a hard precondition for every script. Baseline at session start: 1537 PSScriptAnalyzer findings (3 Error, 1415 Warning, 119 Info).
 
 ### Removed
+- Superseded pack 0–7 apply bats and the power-plan alias so the launcher only lists tracked paths: `1 backup/create-restore-point.bat`, `1 backup/backup-registry.bat`, `2 power plan/enable-ultimate-performance.bat`, `2 power plan/configure-power-plan.ps1`, `7 network/optimize-network.bat`, `4 services/apply-all.bat`, `4 services/revert-all.bat` (use `enable-services.ps1`), raw `4 services/individual/*-disable.bat` / `*-enable.bat` (kept `mobsync-*.bat` wrappers), and leftover `5 registry tweaks/backup-current.bat`.
 - Dead launcher/lib exports with no production callers: `Write-LauncherBox`, unused `DriftKeys` snapshot field, `$script:UI_Accent`, `UI-RequireInternet` (keep `Ensure-Internet`), `Get-GpuDriverVersionManifest` (keep `Get-GpuManifest`), and unwired `Write-ToolkitScriptComplete`.
 - Spent historical audit reports (`CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `SESSION-REPORT.md`). Living tracker is `KNOWN-ISSUES.md`; version history is this file.
 
@@ -22,6 +23,7 @@ Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clea
 - Defense-in-depth enforcement of `$neverRemove` safety list in `9 cleanup/debloat.ps1`. Previously declared but never used (latent safety gap exposed by `PSUseDeclaredVarsMoreThanAssignments`). (`f71d130`)
 
 ### Fixed
+- PowerShell 5.1 load-path: drop `ConvertFrom-Json -Depth` (PS 6.2+) in `Get-ToolkitState` / `Initialize-ToolkitState` / `Get-ToolkitManifest`; replace 3-arg `Join-Path` in `tools/Start-SandboxSession.ps1` with two 2-arg calls. AST invariant in `tests/invariants/ps51-load-path.Tests.ps1`.
 - 3 `PSScriptAnalyzer` Error-severity findings — replaced `Test-Connection -ComputerName "8.8.8.8"` with `[System.Net.NetworkInformation.Ping]` in `lib/download-helpers.ps1`, `lib/ui-helpers.ps1`, `0 prerequisites/install-runtimes.ps1`. Sidesteps a false-positive rule AND drops Cim warmup latency from ~200–500ms to ~5–50ms. (`4e993a9`)
 - 26 .ps1 files reformatted via `Invoke-Formatter` — clears 337 whitespace/indent warnings in one verified-balanced (216/216 line) pass. (`bda742c`)
 - 6 `$profile` shadowings — renamed locals to `$machineProfile` so PowerShell's automatic `$profile` (the user's profile script path) is no longer clobbered in any toolkit script. (`596e701`)
