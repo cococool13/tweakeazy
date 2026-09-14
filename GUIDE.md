@@ -99,7 +99,7 @@ This checks the same phases exposed by the launcher and the full apply flow so y
 | `1 backup/create-backup.ps1` | You want a restore point and registry backup first | Low | Restore point and exported registry files |
 | `0 prerequisites/install-runtimes.ps1` | Games are missing VC++ or legacy DirectX runtimes | Low | Uninstall from Apps / Features |
 | `2 power plan/configure-power.ps1` | You want the performance power baseline only | Low to medium | Switch back to Balanced |
-| `4 services/disable-services.ps1` | You want service changes without the full stack | Medium | `4 services/revert-all.bat` or full revert |
+| `4 services/disable-services.ps1` | You want service changes without the full stack | Medium | `4 services/enable-services.ps1` or full revert |
 | `5 registry tweaks/apply-all.reg` | You want the raw registry pack | Medium | `5 registry tweaks/revert-all.reg` or full revert |
 | `6 gpu/install-gpu-driver.ps1` | You want the clean GPU driver path | Medium to high | DDU + reinstall / full revert for tracked settings |
 | `8 security vs performance/configure-vbs.ps1` | You want the security trade-off step only | High | Re-enable via the same folder or full revert |
@@ -137,7 +137,7 @@ This checks the same phases exposed by the launcher and the full apply flow so y
 - What it changes: disables selected background services.
 - Why run it: reduces unnecessary background work on gaming-focused systems.
 - Main risk: features like printing, search indexing, Offline Files / Sync Center, and telemetry-related components may stop working as expected.
-- Undo: `4 services/revert-all.bat` or the full revert script.
+- Undo: `4 services/enable-services.ps1` or the full revert script.
 
 #### Registry pack
 
