@@ -10,6 +10,7 @@ Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clea
 
 ### Removed
 - Superseded pack 0–7 apply bats and the power-plan alias so the launcher only lists tracked paths: `1 backup/create-restore-point.bat`, `1 backup/backup-registry.bat`, `2 power plan/enable-ultimate-performance.bat`, `2 power plan/configure-power-plan.ps1`, `7 network/optimize-network.bat`, `4 services/apply-all.bat`, `4 services/revert-all.bat` (use `enable-services.ps1`), raw `4 services/individual/*-disable.bat` / `*-enable.bat` (kept `mobsync-*.bat` wrappers), and leftover `5 registry tweaks/backup-current.bat`.
+- Superseded `disable-vbs.bat`, `enable-vbs.bat`, and `cleanup-temp.bat`. VBS apply/revert is `configure-vbs.ps1 -Disable` / `-Enable`; temp cleanup is `cleanup-temp.ps1`.
 - Spent historical audit reports (`CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `SESSION-REPORT.md`). Living tracker is `KNOWN-ISSUES.md`; version history is this file.
 - Spent one-shot agent prompts `prompts/cleanup-and-redesign.md` and `prompts/production-readiness.md`. Outcomes already live in `PRODUCTION-READY.md` and `KNOWN-ISSUES.md`. Those prompts are not live instructions; the current Cloudflare landing page is `site/` and must not be deleted.
 

@@ -61,10 +61,13 @@ Hardware Unboxed) have confirmed this performance impact.
 
 == HOW TO APPLY ==
 
-  To disable: Right-click "disable-vbs.bat" > Run as administrator
-              Then REBOOT.
+  Use configure-vbs.ps1 (elevated PowerShell). Default run is
+  report-only; pass a flag to mutate:
 
-  To re-enable: Right-click "enable-vbs.bat" > Run as administrator
+  To disable:  .\configure-vbs.ps1 -Disable
+               Then REBOOT.
+
+  To re-enable: .\configure-vbs.ps1 -Enable
                 Then REBOOT.
 
   To verify: After reboot, press Win+R, type "msinfo32", Enter.
