@@ -16,7 +16,7 @@
 .NOTES
     Tier: Safe (destructive but reversible only by re-downloading
     what was deleted — e.g. shader caches rebuild on next game launch).
-    Replaces: cleanup-temp.bat
+    Former wrapper cleanup-temp.bat removed.
     Anti-cheat impact: NONE — file deletion under user-writable temp
         and shader-cache directories; no kernel or driver state.
     Reboot required: SEE-SCRIPT — heuristic-default; refine in follow-up.
