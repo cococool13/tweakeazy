@@ -24,9 +24,9 @@
       optimize  <-> revert
 
     Acceptable: sibling stem matches inverse-prefix on either .ps1
-    or .bat (8 security vs performance/configure-vbs.ps1 legitimately
-    pairs with enable-vbs.bat / disable-vbs.bat — the bcdedit toggle
-    is cleaner as a .bat).
+    or .bat. Also acceptable: a configure-* script that exposes both
+    -Enable and -Disable switches (configure-vbs.ps1) — apply and
+    revert live in the same file; no wrapper sibling required.
 
     Known exclusions ($KnownUnpairable) — append-only with justification:
       - APPLY-EVERYTHING.ps1 / REVERT-EVERYTHING.ps1 mutually pair (handled
@@ -107,9 +107,9 @@ Describe 'Invariant: every mutator has a paired sibling (apply/revert)' {
             'enable' = @('disable')
             'install' = @('uninstall')
             'uninstall' = @('install')
-            # configure-* can be Apply/Revert via -Enable/-Disable
-            # switch param (configure-vbs.ps1 pattern with enable-vbs.bat
-            # / disable-vbs.bat wrappers), so include all 4 inverse verbs.
+            # configure-* can be Apply/Revert via a sibling
+            # (revert-/restore-/disable-/enable-*) OR self-paired via
+            # -Enable/-Disable switches on the same script.
             'configure' = @('revert', 'restore', 'disable', 'enable')
             'revert' = @('configure', 'apply', 'force', 'optimize', 'install', 'tune')
             'restore' = @('configure', 'tune', 'apply', 'disable')
@@ -123,6 +123,27 @@ Describe 'Invariant: every mutator has a paired sibling (apply/revert)' {
 
         $dir = Split-Path -Parent $FullPath
         $stem = [System.IO.Path]::GetFileNameWithoutExtension($FullPath)
+
+        # Self-pair: configure-vbs.ps1 (and any mutator with both
+        # -Enable and -Disable switches) applies and reverts in-file.
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+            $FullPath, [ref]$null, [ref]$null)
+        if ($ast -and $ast.ParamBlock) {
+            $paramNames = @(
+                $ast.ParamBlock.Parameters |
+                    ForEach-Object { $_.Name.VariablePath.UserPath }
+            )
+            $hasEnable = $false
+            $hasDisable = $false
+            foreach ($n in $paramNames) {
+                if ($n -eq 'Enable') { $hasEnable = $true }
+                if ($n -eq 'Disable') { $hasDisable = $true }
+            }
+            if ($hasEnable -and $hasDisable) {
+                $true | Should -BeTrue
+                return
+            }
+        }
 
         # Case-insensitive sibling lookup. Test-Path is case-SENSITIVE on
         # Linux runners, so the generated candidate 'revert-EVERYTHING.ps1'

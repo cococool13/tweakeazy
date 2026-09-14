@@ -25,7 +25,7 @@
 # Reboot required: SEE-SCRIPT — heuristic-default; refine in follow-up.
 # Disk impact: NONE — registry / cmdlet only; no installer / file extraction.
 #
-# Replaces: disable-vbs.bat, enable-vbs.bat
+# Former wrappers disable-vbs.bat / enable-vbs.bat removed; use -Disable / -Enable.
 # Must be run as Administrator. Requires reboot.
 # ============================================================
 
