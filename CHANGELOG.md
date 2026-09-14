@@ -2,11 +2,14 @@
 
 All notable changes to this toolkit are documented here.
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The audit history is preserved in `CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, and `CLEANUP.md`; this file is the user-facing roll-up.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Open work and owner decisions live in `KNOWN-ISSUES.md`; this file is the version history.
 
 ## [Unreleased] — continuous-improvement loop (in progress)
 
 Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clean a hard precondition for every script. Baseline at session start: 1537 PSScriptAnalyzer findings (3 Error, 1415 Warning, 119 Info).
+
+### Removed
+- Spent historical audit reports (`CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `SESSION-REPORT.md`). Living tracker is `KNOWN-ISSUES.md`; version history is this file.
 
 ### Added
 - `.psscriptanalyzer.psd1` project ruleset — PS 5.1+7.4 compatibility targets, formatter rules, explicit exclusions with documented rationale per excluded rule. (`bbd2a56`)
@@ -316,9 +319,9 @@ First public release. The toolkit went through three predecessor passes (FR33THY
 - `APPLY-EVERYTHING.ps1` Nagle write at lines 399–400 bypasses `Set-ToolkitRegistryValue`. The standalone `7 network/optimize-network.ps1` uses the helper. Convert APPLY's block in v1.1 so REVERT can restore Nagle defaults.
 - Startup-cleanup `reg delete` calls (OneDrive / Teams autostart) are intentional vendor-default policy applies. Revert depends on the user re-launching the affected app.
 - Power-Plan `Attributes` write at line 163 unhides a hidden setting (metadata, not behavior). No tier tag needed.
-- Notice.txt scope: lineage credit only (Khorvie Tech). Broader credits are in `GUIDE.md`. Owner decision in `CHANGES.md` Q2.
+- Notice.txt scope: lineage credit only (Khorvie Tech). Broader credits are in `GUIDE.md`. Owner decision tracked in `KNOWN-ISSUES.md`.
 
 ### Design deviation
-- The launcher omits a `[3] Privacy / telemetry` category. The repo's numbered-folder layout has no `3 privacy/`; privacy tweaks (`privacy-telemetry.reg`, `disable-edge-background.ps1`, `disable-windows-update.ps1`) live in `5 registry tweaks/individual/` and are reachable via `[5]` Registry tweaks → submenu. Documented in `CLEANUP.md`.
+- The launcher omits a `[3] Privacy / telemetry` category. The repo's numbered-folder layout has no `3 privacy/`; privacy tweaks (`privacy-telemetry.reg`, `disable-edge-background.ps1`, `disable-windows-update.ps1`) live in `5 registry tweaks/individual/` and are reachable via `[5]` Registry tweaks → submenu.
 
 [1.0.0]: https://github.com/cococool13/TweakEazy/releases/tag/v1.0.0

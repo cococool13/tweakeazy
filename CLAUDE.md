@@ -77,12 +77,14 @@ Numbered folders (`0 prerequisites/` → `10 verify/`) hold per-phase scripts.
 ## Doc map (where to look first)
 
 - **Architecture / phases / repo map** → `GUIDE.md`
-- **Historical port/decline notes (NOT a binding list — see Scope above)** → `KNOWN-ISSUES.md`
+- **Living tracker (open work, limitations, owner decisions)** → `KNOWN-ISSUES.md`
 - **Per-version history** → `CHANGELOG.md`
 - **Manual runtime test gate** → `MANUAL-TEST-CHECKLIST.md`
 - **Hardware/BIOS items the toolkit cannot script** → `BIOS-CHECKLIST.md`
 - **Upstream FR33THY port log** → `docs/freethy-integration.md`
-- **Audit chain (don't edit)** → `CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `PRODUCTION-READY.md`
+- **v1.0.0 readiness snapshot (historical)** → `PRODUCTION-READY.md`
+
+`KNOWN-ISSUES.md` and `CHANGELOG.md` are the living record. Spent audit reports (`CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `SESSION-REPORT.md`) were folded into those two files and removed. Do not recreate them.
 
 ## Conventions
 
