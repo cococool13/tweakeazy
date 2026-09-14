@@ -1,5 +1,7 @@
 # Production Readiness Report — v1.0.0
 
+Historical v1.0.0 readiness snapshot. Current tracker: `KNOWN-ISSUES.md`. Version history: `CHANGELOG.md`.
+
 Outcome of executing `prompts/production-readiness.md` against `main`. The release tag follows once `MANUAL-TEST-CHECKLIST.md` is run on a Win11 host and updated with a pass row.
 
 ## Decisions
@@ -11,7 +13,7 @@ These are the choices the audit made when the prompt left them open. Each is doc
 - **Single source of truth: `VERSION` file at repo root.** Lighter than a `lib/version.ps1` module — `lib/toolkit-state.ps1` reads it once at script load and exposes `$script:ToolkitVersion` to the rest of the codebase. No helper signature change.
 - **Phase 3 path: B.** No Windows VM accessible from this audit environment. Deliverable is `MANUAL-TEST-CHECKLIST.md` (sixteen sections, ~one hour of click-through testing) at repo root. The actual Windows runtime test is the owner's gate before promoting v1.0.0 publicly.
 - **Safety branches retired: yes, after tag push.** The cleanup-pass branches (`CC/salvage-pre-cleanup`, `CC/sleepy-hellman-f4b52f`) are deleted after the tag pushes clean. Phases 1–3 surfaced zero blockers, so the prompt's gate to retire them is satisfied.
-- **`Notice.txt` left untouched.** Owner-decision per `CHANGES.md` Q2; documented in `KNOWN-ISSUES.md`. Lineage credit only; broader credits live in `GUIDE.md` and per-file headers.
+- **`Notice.txt` left untouched.** Owner decision; documented in `KNOWN-ISSUES.md`. Lineage credit only; broader credits live in `GUIDE.md` and per-file headers.
 
 ## Phase 1 — Cleanup integrity (verification table)
 
@@ -46,7 +48,7 @@ These four findings are real bypasses or open questions that do not gate v1.0.0:
 1. **`APPLY-EVERYTHING.ps1` Nagle write at lines 399–400** — raw `Set-ItemProperty TcpAckFrequency` / `TCPNoDelay` instead of `Set-ToolkitRegistryValue`. Consequence: `REVERT-EVERYTHING.ps1` won't roll back Nagle changes that came from the APPLY path. The standalone `7 network/optimize-network.ps1` *does* use `Set-ToolkitRegistryValue` for the same writes. Default Nagle behavior is harmless when left in place; this is a revert-completeness gap, not a stability risk. Convert APPLY's block in v1.1.
 2. **Startup-cleanup `reg delete` at lines 328+ (OneDrive / Teams autostart)** — vendor-installed values; nothing useful to capture as `before` state. Revert relies on the user re-launching the affected app to re-register the autostart hook. Acceptable as intentional defaults-style policy apply.
 3. **Power-Plan `Attributes` write at line 163** — metadata write (`/v Attributes /d 0`) that unhides a hidden power setting so the next `Set-PowerIdx` call can reach it. The Phase block is tier-tagged; the individual write isn't, because there's no functional change to revert. Acceptable.
-4. **`Notice.txt` scope** — credits Khorvie Tech only (lineage). FR33THY / Chris Titus Tech / Wagnardsoft credits live in `GUIDE.md`. Owner decision in `CHANGES.md` Q2; no technical impact.
+4. **`Notice.txt` scope** — credits Khorvie Tech only (lineage). FR33THY / Chris Titus Tech / Wagnardsoft credits live in `GUIDE.md`. Owner decision tracked in `KNOWN-ISSUES.md`; no technical impact.
 
 All four are recorded in `KNOWN-ISSUES.md` `## Logged for next release` (commit `9bfa79e`).
 
@@ -104,8 +106,8 @@ Final state: `main` is the only active branch. Only the main worktree at `/Users
 
 ## Accepted deviations
 
-- **No `[3] Privacy / telemetry` category in the launcher.** The repo has no `3 privacy/` folder; privacy tweaks live in `5 registry tweaks/individual/`. Creating a new folder would have required updating every reference in APPLY / REVERT / verify / READMEs / docs — explicit scope creep per the cleanup-pass prompt. Documented in `CLEANUP.md` and recapped in `CHANGELOG.md` v1.0.0 design-deviation section.
-- **`Notice.txt` carries lineage credit only.** Khorvie Tech only. FR33THY / Chris Titus Tech / Wagnardsoft are credited in `GUIDE.md` Credits and per-file headers. Owner-decision item (`CHANGES.md` Q2). No technical impact.
+- **No `[3] Privacy / telemetry` category in the launcher.** The repo has no `3 privacy/` folder; privacy tweaks live in `5 registry tweaks/individual/`. Creating a new folder would have required updating every reference in APPLY / REVERT / verify / READMEs / docs — explicit scope creep per the cleanup-pass prompt. Recapped in `CHANGELOG.md` v1.0.0 design-deviation section.
+- **`Notice.txt` carries lineage credit only.** Khorvie Tech only. FR33THY / Chris Titus Tech / Wagnardsoft are credited in `GUIDE.md` Credits and per-file headers. Owner-decision item (see `KNOWN-ISSUES.md`). No technical impact.
 - **Phase 3 deliverable is the checklist, not the test result.** Path B is the prompt's explicit option for environments without a Windows host. The runtime gate is owned by `MANUAL-TEST-CHECKLIST.md` and the owner's post-tag verification, not by this report. Public promotion of the v1.0.0 tag (e.g. attaching release notes on GitHub Releases, updating any external "latest version" pointers) waits on the checklist coming back green.
 - **Three intentional non-tracked operations in `APPLY-EVERYTHING.ps1`.** PowerSettings `Attributes` unhide (line 163), `reg delete` startup hooks (line 328+), raw Nagle write (line 399–400). All inside tier-tagged Phase blocks; functional consequences are documented in `KNOWN-ISSUES.md` `## Logged for next release`. Refactoring them to `Set-TrackedRegistry` is v1.1 work.
 

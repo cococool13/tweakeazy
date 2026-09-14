@@ -88,7 +88,7 @@ This is the canonical record of which FR33THY artifacts were ported into this to
 
 ## Net additions
 
-Ported and declined items are listed in the table above. `CODEX-AUDIT.md` records follow-up discrepancies found after this initial inventory.
+Ported and declined items are listed in the table above. Follow-up items after this inventory are tracked in `KNOWN-ISSUES.md`; shipped fixes are in `CHANGELOG.md`.
 
 ## Crediting
 
