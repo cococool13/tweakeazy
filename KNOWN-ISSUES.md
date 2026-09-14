@@ -315,71 +315,15 @@ Line 163 (`reg add ... PowerSettings\54533251.../Attributes /d 0`) is a metadata
 
 #### Notice.txt scope
 
-`Notice.txt` credits Khorvie Tech only — the original toolkit lineage. FR33THY, Chris Titus Tech, and Wagnardsoft are credited in `GUIDE.md` Credits and per-file headers. Owner-decision item from `CHANGES.md` Q2: expand `Notice.txt` to consolidate all upstream credits, or keep it focused on lineage. No technical impact either way.
+`Notice.txt` credits Khorvie Tech only — the original toolkit lineage. FR33THY, Chris Titus Tech, and Wagnardsoft are credited in `GUIDE.md` Credits and per-file headers. Owner decision: expand `Notice.txt` to consolidate all upstream credits, or keep it focused on lineage. No technical impact either way.
 
 #### `README.md` launcher screenshot
 
 `README.md` describes the launcher header, three-section layout, and color-coded tier indicators in prose, but does not embed a screenshot. The production-readiness pass ran on macOS (no Windows host), so a real-host screenshot couldn't be captured. After the owner runs `MANUAL-TEST-CHECKLIST.md` section 1 on a Win11 VM, capture the launcher main menu (PNG) and place it at `docs/img/launcher.png`, then add `![](docs/img/launcher.png)` under the Quick start section of `README.md`. v1.1 follow-up.
 
-### From Cursor audit pass (full report in `CURSOR-AUDIT.md`)
+### Cursor audit #1–#25 (closed)
 
-Findings below are grouped by severity. The audit was run read-only — no
-files were modified. File:line references are exact.
-
-#### Critical
-
-1. **`APPLY-EVERYTHING.ps1:412-454` — Security trade-offs bundled in Apply All without separate gate**
-   - VBS / HVCI / LSA-PPL / Spectre / WU suppression all run inside `[A] Apply All` after a single global confirm.
-   - Fix: add `-IncludeSecurityTradeoffs` switch defaulting to `$false`; require an explicit second confirm (or separate launcher action) to opt in.
-2. **`APPLY-EVERYTHING.ps1:437-454` — No anti-cheat warning on HVCI/VBS bulk disable**
-   - `.cursorrules` requires flagging BattlEye-relevant changes. No file currently mentions BattlEye or EAC.
-   - Fix: header comment block in `APPLY-EVERYTHING.ps1` Phase 10 + `configure-vbs.ps1` + `disable-vbs.bat`: "HVCI/VBS changes may affect BattlEye/EAC on Win11 24H2+. Test R6 Siege and similar titles after reboot."
-
-#### High
-
-3. **`5 registry tweaks/individual/install-timer-resolution-service.ps1` — no paired uninstall script**
-   - Uninstall steps documented only in comments. Add `uninstall-timer-resolution-service.ps1` that stops the service, deletes it, and removes the `GlobalTimerResolutionRequests` registry value.
-4. **`9 cleanup/debloat.ps1` — no revert script**
-   - Package removals are logged in the manifest (`state.packages.removed`) but there's no `restore-debloat.ps1`. Either build one that reinstalls from `Microsoft.Store` / `winget`, or document the limitation explicitly in the script header.
-5. **`APPLY-EVERYTHING.ps1:394-401` — Nagle untracked** (also in v1.0.0 audit above; consolidate fix).
-6. **`6 gpu/{nvidia,amd,intel}/configure-*.ps1` — no standalone admin check**
-   - Safe when called from `install-gpu-driver.ps1:39-50` (which checks), but breaks the "every script self-checks admin" invariant in [CLAUDE.md](CLAUDE.md). Add `UI-RequireAdmin` to the top of all three.
-7. **`8 security vs performance/configure-vbs.ps1:90` — default path disables security**
-   - Running the script with no flags currently disables VBS/HVCI. The "opt-in" is running the script at all, which is the wrong shape.
-   - Fix: require `-Disable` / `-ConfirmDisable`; default to report-only.
-8. **`4 services/revert-all.bat` ignores manifest**
-   - Resets services to fixed defaults rather than to `state.services` captured values. Inconsistent with `disable-services.ps1`.
-   - Fix: rewrite as PS that calls `Restore-ToolkitServiceStartMode`, or deprecate the `.bat` and document `REVERT-EVERYTHING.ps1` as the only supported revert path.
-
-#### Medium
-
-9. **`5 registry tweaks/individual/disable-windows-update.ps1:35-76`** — raw `Stop-Service` / `sc.exe config` / `Set-ItemProperty -Force` without toolkit-state. Migrate to `Set-ToolkitServiceStartMode` + `Set-ToolkitRegistryValue`.
-10. **`5 registry tweaks/individual/privacy-telemetry.reg:47-48`** — Delivery Optimization writes under `HKEY_USERS\S-1-5-20\...`. Verify Win11 DO policy hive; likely move to `HKLM\SOFTWARE\Policies\...`.
-11. **`5 registry tweaks/individual/install-timer-resolution-service.ps1` — cargo-cult on Win11 24H2+** — kernel timer behavior changed; benefit is unclear. Add "unlikely benefit; documented for completeness" header text, keep opt-in.
-12. **`5 registry tweaks/individual/game-priority.reg:14` — `NetworkThrottlingIndex=0xffffffff` legacy myth.** Keep opt-in; document negligible benefit on Win11.
-13. **`APPLY-EVERYTHING.ps1:228-316` Phase 5 `Reg-Add` mass** — weak idempotency and manifest coverage. Migrate high-risk keys to `Set-TrackedRegistry`.
-14. **GPU scripts without colocated revert** (`force-p0-state`, `enable-msi-mode`, `configure-amd-ulps`, `configure-{nvidia,amd,intel}.ps1`) — manifest-only revert. Add paired `revert-*` siblings per the new "apply / revert pairing" convention in [CLAUDE.md](CLAUDE.md).
-15. **`5 registry tweaks/individual/enable-write-cache-flush.ps1`** — captures `writecache-before.json` sidecar on apply but never reads it on revert. Fall back to sidecar when manifest empty.
-16. **Anti-cheat warnings missing** on VBS / HVCI / timer-resolution / WU disable scripts. Add per-file header notes consistent with the new convention in [CLAUDE.md](CLAUDE.md).
-17. **`5 registry tweaks/individual/configure-mmagent.ps1:52-66`** — `Disable-MMAgent` may fail on re-run if already disabled. Pre-check `Get-MMAgent` flags.
-
-#### Low
-
-18. **`2 power plan/configure-power-plan.ps1`** — legacy duplicate of `configure-power.ps1`. Delete or alias.
-19. **`lib/toolkit-state.ps1:290-295`** — `Set-ToolkitRegistryValue` always uses `New-ItemProperty -Force`. Optional: compare current value before write for true idempotency.
-20. **Individual `.reg` files without 1:1 sibling reverts**: `disable-power-throttling.reg`, `disable-game-bar-dvr.reg`, `explorer-tweaks.reg`, `game-priority.reg`, `visual-effects-performance.reg`, `disable-fullscreen-optimizations.reg`, `mouse-hover-time.reg`, `disable-startup-delay.reg`, `privacy-telemetry.reg`, `disable-fast-startup.reg`, `disable-driver-searching.reg`, `sound-scheme-none.reg`, `menu-show-delay.reg`. Generate paired `revert-*.reg` files (mechanical work).
-21. **Legacy `4 services/individual/*.bat`** — bypass `toolkit-state.ps1`. Either deprecate in favor of `disable-services.ps1` or add manifest tracking.
-22. **`5 registry tweaks/individual/enable-spectre-meltdown.ps1`** — no `Initialize-ToolkitState` call (works via remove fallback only). Add for consistency.
-23. **`5 registry tweaks/individual/disable-startup-delay.reg:6-7`** — `Explorer\Serialize\StartupDelayInMSec` often ignored on Win11 (StartupApproved model). Verify on 24H2; remove from `apply-all.reg` if confirmed no-op (keep individual script).
-24. **`7 network/disable-adapter-power-savings.ps1:64-73`** — re-applies even if already disabled. Compare `Get-NetAdapterPowerManagement` before set.
-25. **`6 gpu/configure-amd-ulps.ps1` and `6 gpu/amd/configure-amd.ps1:22-29`** — ULPS disabled in two places (overlapping FR33THY ports). Consolidate to single code path.
-
-### Suggested triage order
-
-(From `CURSOR-AUDIT.md` summary — preserved here for v1.1 planning.)
-
-1. Apply All security gating (`-IncludeSecurityTradeoffs:$false`) + anti-cheat comments on VBS/HVCI paths.
-2. Nagle tracking in `APPLY-EVERYTHING.ps1`.
-3. Admin checks on GPU configure scripts.
-4. Orphans: `uninstall-timer-resolution-service.ps1`, debloat revert story, `revert-all.bat` vs manifest.
-5. Cargo-cult review pass: timer service, `NetworkThrottlingIndex`, Nagle defaults.
+The 2026-05-24 Cursor pass listed 25 findings. Those remediations shipped;
+do not re-open them as new work. The remaining follow-up that is still
+open is already tracked above (Phase 5 / Phase 11 Reg-Add remainder).
+Per-version history is in `CHANGELOG.md`.
