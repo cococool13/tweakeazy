@@ -20,20 +20,6 @@ if ($env:ProgramData) {
     $script:GpuDriverStageRoot = Join-Path $HOME '.local/share/GamingOpt/Drivers'
 }
 
-function Get-GpuDriverVersionManifest {
-    <#
-    .SYNOPSIS
-        Loads a GPU driver version manifest object (from versions.json or remote).
-    #>
-    param([string]$ManifestPath)
-
-    if (-not (Test-Path $ManifestPath)) {
-        throw "GPU driver version manifest not found: $ManifestPath"
-    }
-
-    return Get-Content $ManifestPath -Raw | ConvertFrom-Json
-}
-
 function Resolve-NvidiaDriverUrl {
     <#
     .SYNOPSIS

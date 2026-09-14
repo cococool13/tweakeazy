@@ -104,7 +104,6 @@ function Write-ToolkitScriptStart {
         when invoked through a helper like Initialize-ToolkitState.
 
     .NOTES
-        Pairs with Write-ToolkitScriptComplete to bracket execution.
         Best-effort: silent if no caller can be resolved (e.g. dot-
         sourced from interactive shell).
     #>
@@ -136,41 +135,6 @@ function Write-ToolkitScriptStart {
             args = $argsMap
         }
         $script:ToolkitScriptStartLogged = $true
-    } catch {
-        $null = $_
-    }
-}
-
-function Write-ToolkitScriptComplete {
-    <#
-    .SYNOPSIS
-        Emit a 'script-complete' log line for the calling script.
-    .DESCRIPTION
-        Pairs with Write-ToolkitScriptStart. Single-line wire-up at
-        the bottom of a mutating script (after the last Read-Host /
-        before exit). Records the user-perceived outcome so log
-        scraping can answer "did the user actually finish run X."
-    .PARAMETER Status
-        Free-form outcome label. Convention: 'ok' | 'cancelled' |
-        'failed' | 'skipped'. Defaults to 'ok'.
-    .PARAMETER Data
-        Optional extra fields (counts, durations, etc.).
-    #>
-    [CmdletBinding()]
-    param(
-        [string]$Status = 'ok',
-        [hashtable]$Data
-    )
-    try {
-        $caller = (Get-PSCallStack | Select-Object -Skip 1 -First 1)
-        $stem = if ($caller -and $caller.ScriptName) {
-            [System.IO.Path]::GetFileNameWithoutExtension($caller.ScriptName)
-        } else { 'interactive' }
-        $payload = @{ script = $stem; status = $Status }
-        if ($Data) {
-            foreach ($k in $Data.Keys) { $payload[$k] = $Data[$k] }
-        }
-        Write-ToolkitLog 'script-complete' -Data $payload
     } catch {
         $null = $_
     }
