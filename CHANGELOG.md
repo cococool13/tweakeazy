@@ -2,14 +2,16 @@
 
 All notable changes to this toolkit are documented here.
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The audit history is preserved in `CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, and `CLEANUP.md`; this file is the user-facing roll-up.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Open work and owner decisions live in `KNOWN-ISSUES.md`; this file is the version history.
 
 ## [Unreleased] — continuous-improvement loop (in progress)
 
 Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clean a hard precondition for every script. Baseline at session start: 1537 PSScriptAnalyzer findings (3 Error, 1415 Warning, 119 Info).
 
 ### Removed
-- Spent one-shot agent prompts `prompts/cleanup-and-redesign.md` and `prompts/production-readiness.md`. Outcomes already recorded in `CLEANUP.md` and `PRODUCTION-READY.md`. Those files are not live instructions; the current Cloudflare landing page is `site/` and must not be deleted.
+- Superseded pack 0–7 apply bats and the power-plan alias so the launcher only lists tracked paths: `1 backup/create-restore-point.bat`, `1 backup/backup-registry.bat`, `2 power plan/enable-ultimate-performance.bat`, `2 power plan/configure-power-plan.ps1`, `7 network/optimize-network.bat`, `4 services/apply-all.bat`, `4 services/revert-all.bat` (use `enable-services.ps1`), raw `4 services/individual/*-disable.bat` / `*-enable.bat` (kept `mobsync-*.bat` wrappers), and leftover `5 registry tweaks/backup-current.bat`.
+- Spent historical audit reports (`CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `SESSION-REPORT.md`). Living tracker is `KNOWN-ISSUES.md`; version history is this file.
+- Spent one-shot agent prompts `prompts/cleanup-and-redesign.md` and `prompts/production-readiness.md`. Outcomes already live in `PRODUCTION-READY.md` and `KNOWN-ISSUES.md`. Those prompts are not live instructions; the current Cloudflare landing page is `site/` and must not be deleted.
 
 ### Added
 - `.psscriptanalyzer.psd1` project ruleset — PS 5.1+7.4 compatibility targets, formatter rules, explicit exclusions with documented rationale per excluded rule. (`bbd2a56`)
@@ -21,6 +23,7 @@ Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clea
 - Defense-in-depth enforcement of `$neverRemove` safety list in `9 cleanup/debloat.ps1`. Previously declared but never used (latent safety gap exposed by `PSUseDeclaredVarsMoreThanAssignments`). (`f71d130`)
 
 ### Fixed
+- PowerShell 5.1 load-path: drop `ConvertFrom-Json -Depth` (PS 6.2+) in `Get-ToolkitState` / `Initialize-ToolkitState` / `Get-ToolkitManifest`; replace 3-arg `Join-Path` in `tools/Start-SandboxSession.ps1` with two 2-arg calls. AST invariant in `tests/invariants/ps51-load-path.Tests.ps1`.
 - 3 `PSScriptAnalyzer` Error-severity findings — replaced `Test-Connection -ComputerName "8.8.8.8"` with `[System.Net.NetworkInformation.Ping]` in `lib/download-helpers.ps1`, `lib/ui-helpers.ps1`, `0 prerequisites/install-runtimes.ps1`. Sidesteps a false-positive rule AND drops Cim warmup latency from ~200–500ms to ~5–50ms. (`4e993a9`)
 - 26 .ps1 files reformatted via `Invoke-Formatter` — clears 337 whitespace/indent warnings in one verified-balanced (216/216 line) pass. (`bda742c`)
 - 6 `$profile` shadowings — renamed locals to `$machineProfile` so PowerShell's automatic `$profile` (the user's profile script path) is no longer clobbered in any toolkit script. (`596e701`)
@@ -319,9 +322,9 @@ First public release. The toolkit went through three predecessor passes (FR33THY
 - `APPLY-EVERYTHING.ps1` Nagle write at lines 399–400 bypasses `Set-ToolkitRegistryValue`. The standalone `7 network/optimize-network.ps1` uses the helper. Convert APPLY's block in v1.1 so REVERT can restore Nagle defaults.
 - Startup-cleanup `reg delete` calls (OneDrive / Teams autostart) are intentional vendor-default policy applies. Revert depends on the user re-launching the affected app.
 - Power-Plan `Attributes` write at line 163 unhides a hidden setting (metadata, not behavior). No tier tag needed.
-- Notice.txt scope: lineage credit only (Khorvie Tech). Broader credits are in `GUIDE.md`. Owner decision in `CHANGES.md` Q2.
+- Notice.txt scope: lineage credit only (Khorvie Tech). Broader credits are in `GUIDE.md`. Owner decision tracked in `KNOWN-ISSUES.md`.
 
 ### Design deviation
-- The launcher omits a `[3] Privacy / telemetry` category. The repo's numbered-folder layout has no `3 privacy/`; privacy tweaks (`privacy-telemetry.reg`, `disable-edge-background.ps1`, `disable-windows-update.ps1`) live in `5 registry tweaks/individual/` and are reachable via `[5]` Registry tweaks → submenu. Documented in `CLEANUP.md`.
+- The launcher omits a `[3] Privacy / telemetry` category. The repo's numbered-folder layout has no `3 privacy/`; privacy tweaks (`privacy-telemetry.reg`, `disable-edge-background.ps1`, `disable-windows-update.ps1`) live in `5 registry tweaks/individual/` and are reachable via `[5]` Registry tweaks → submenu.
 
 [1.0.0]: https://github.com/cococool13/TweakEazy/releases/tag/v1.0.0

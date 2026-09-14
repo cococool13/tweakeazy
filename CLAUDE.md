@@ -77,12 +77,14 @@ Numbered folders (`0 prerequisites/` → `10 verify/`) hold per-phase scripts.
 ## Doc map (where to look first)
 
 - **Architecture / phases / repo map** → `GUIDE.md`
-- **Historical port/decline notes (NOT a binding list — see Scope above)** → `KNOWN-ISSUES.md`
+- **Living tracker (open work, limitations, owner decisions)** → `KNOWN-ISSUES.md`
 - **Per-version history** → `CHANGELOG.md`
 - **Manual runtime test gate** → `MANUAL-TEST-CHECKLIST.md`
 - **Hardware/BIOS items the toolkit cannot script** → `BIOS-CHECKLIST.md`
 - **Upstream FR33THY port log** → `docs/freethy-integration.md`
-- **Audit chain (don't edit)** → `CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `PRODUCTION-READY.md`
+- **v1.0.0 readiness snapshot (historical)** → `PRODUCTION-READY.md`
+
+`KNOWN-ISSUES.md` and `CHANGELOG.md` are the living record. Spent audit reports (`CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `SESSION-REPORT.md`) were folded into those two files and removed. Do not recreate them.
 
 ## Conventions
 
@@ -146,8 +148,8 @@ Numbered folders (`0 prerequisites/` → `10 verify/`) hold per-phase scripts.
   not elevated. Don't add partial-menu rendering for non-admin.
 - **Domain-joined / laptop hints**: surfaced in launcher header but APPLY still
   runs if the user proceeds — never auto-skip phases based on profile.
-- **Apply All currently bundles `Security Trade-off` phases** (VBS/HVCI/LSA/
-  Spectre/WU suppression) behind a single global confirm. Adding new
-  Security-Trade-off items to APPLY-EVERYTHING.ps1 inherits that behavior until
-  the `-IncludeSecurityTradeoffs:$false` gate lands in a future release. Until
-  then, default new opt-in items to standalone scripts only.
+- **Apply All leaves `Security Trade-off` phases off by default.** Phases 9–10
+  (VBS/HVCI/LSA/Spectre/WU suppression) run only when `-IncludeSecurityTradeoffs`
+  is passed. Launcher `[A]` prompts before passing that switch. Default new
+  Security Trade-off items to standalone scripts unless the user asks them
+  into the bundled APPLY path.
