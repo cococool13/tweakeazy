@@ -61,7 +61,7 @@ This is the canonical record of which FR33THY artifacts were ported into this to
 | `6 Windows/32 Core Isolation.ps1` | .ps1 | HVCI off | Yes (`8 security vs performance/configure-vbs.ps1`) | Decline | — |
 | `6 Windows/33 Defender Optimize.ps1` | .ps1 | Defender lockdown | Partial (we have exclusions) | Decline (crosses safety line) | `KNOWN-ISSUES.md` |
 | `6 Windows/34 Autoruns Startup Tasks & Apps Check.ps1` | .ps1 | Diagnostic | Partial | **Port launcher** | `13 external tools/launch-autoruns.ps1` |
-| `6 Windows/35 Cleanup.ps1` | .ps1 | Temp cleanup | Yes (`9 cleanup/cleanup-temp.{bat,ps1}`) | Decline | — |
+| `6 Windows/35 Cleanup.ps1` | .ps1 | Temp cleanup | Yes (`9 cleanup/cleanup-temp.ps1`) | Decline | — |
 | `6 Windows/36 Restore Point.ps1` | .ps1 | Restore point | Yes (`1 backup/create-backup.ps1`) | Decline | — |
 | `7 Hardware/1-8 *.ps1` | .ps1 | Polling rate / monitor tests / build guides | Partial — `12 hardware/` | **Partial port** | `12 hardware/` |
 | `8 Advanced/1 Defender.ps1` | .ps1 | Defender disable | Partial (we have exclusions) | Decline (overlap with `6 Windows/33`) | `KNOWN-ISSUES.md` |
