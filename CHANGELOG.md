@@ -27,6 +27,7 @@ Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clea
 - 9 misc unused variables — dead-code removal or pipe-to-Out-Null. One was a real defense-in-depth gap (`debloat.ps1` `$neverRemove`). (`f71d130`)
 
 ### Changed
+- Removed superseded `disable-vbs.bat`, `enable-vbs.bat`, and `cleanup-temp.bat`. VBS apply/revert is `configure-vbs.ps1 -Disable` / `-Enable`; temp cleanup is `cleanup-temp.ps1`.
 - Analyzer rule exclusions with explicit rationale comments:
   - `PSAvoidUsingWriteHost` — toolkit is interactive UI, not pipeline; quality bar enforces "no `Write-Host` for data" by code review.
   - `PSUseBOMForUnicodeEncodedFile` — `.gitattributes` enforces UTF-8 without BOM; .bat callers don't grok BOMs.

@@ -120,8 +120,8 @@ For each of the 10 categories, press the key, confirm:
 - [ ] **11.5** `[5]` Registry tweaks — submenu lists ~30 `.reg` and `.ps1` files including `apply-all.reg`, `revert-all.reg`, `privacy-telemetry.reg`, `disable-spectre-meltdown.ps1`.
 - [ ] **11.6** `[6]` GPU — submenu lists vendor-specific subfolders flattened, including `enable-msi-mode.ps1`, `nvidia/force-p0-state.ps1`, `configure-amd-ulps.ps1`, `install-gpu-driver.ps1`.
 - [ ] **11.7** `[7]` Network — submenu lists `disable-adapter-power-savings.ps1`, `enable-adapter-power-savings.ps1`, `disable-ipv6-binding.ps1`, `enable-ipv6-binding.ps1`, `optimize-network.ps1`, `revert-network.bat`.
-- [ ] **11.8** `[8]` Security vs performance — submenu lists `configure-vbs.ps1`, `disable-dep.ps1`, `enable-dep.ps1`, `disable-vbs.bat`, `enable-vbs.bat`. Tier label in the submenu header reads `Trade-off`.
-- [ ] **11.9** `[9]` Cleanup — submenu lists `chris-titus-winutil.bat`, `cleanup-temp.bat`, `cleanup-temp.ps1`, `debloat.ps1`.
+- [ ] **11.8** `[8]` Security vs performance — submenu lists `configure-vbs.ps1`, `disable-dep.ps1`, `enable-dep.ps1`. Tier label in the submenu header reads `Trade-off`.
+- [ ] **11.9** `[9]` Cleanup — submenu lists `chris-titus-winutil.bat`, `cleanup-temp.ps1`, `debloat.ps1`.
 - [ ] **11.10** `[10]` Verify — submenu lists `verify-tweaks.ps1`.
 - [ ] **11.11** From any submenu, `Q` returns to the main menu cleanly.
 
