@@ -67,7 +67,6 @@ function Get-LauncherManifestSnapshot {
         StepCount = 0
         ApplyEntries = @()
         AppliedKeys = @()
-        DriftKeys = @()
     }
 
     $state = $null
@@ -182,20 +181,6 @@ function Get-LauncherTierLabel {
     param([string]$Tier)
     if ($Tier -eq "Security Trade-off") { return "Trade-off" }
     return $Tier
-}
-
-function Write-LauncherBox {
-    param([string]$Top, [string]$Bottom, [string[]]$Lines)
-    $borderColor = $script:UI_Soft
-    if ($script:LauncherUseAscii) {
-        Write-Host $Top -ForegroundColor $borderColor
-        foreach ($line in $Lines) { Write-Host $line }
-        Write-Host $Bottom -ForegroundColor $borderColor
-    } else {
-        Write-Host $Top -ForegroundColor $borderColor
-        foreach ($line in $Lines) { Write-Host $line }
-        Write-Host $Bottom -ForegroundColor $borderColor
-    }
 }
 
 function Write-LauncherSectionLabel {

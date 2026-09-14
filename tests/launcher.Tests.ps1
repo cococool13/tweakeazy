@@ -8,7 +8,7 @@
     Launcher.ps1 is the user's primary entry point. Regressions in
     its category list, key map, or quick-action wiring break every
     downstream script. These AST-level tests catch:
-      - Function surface stability (21 named functions)
+      - Function surface stability (20 named functions)
       - LauncherCategories key uniqueness (no two folders fight for [N])
       - LauncherQuickActions completeness (A V R always present)
       - Apply-All wiring includes the IncludeSecurityTradeoffs prompt
@@ -59,12 +59,12 @@ Describe 'launcher.ps1 — surface contract' {
             $errors | Should -BeNullOrEmpty
         }
 
-        It 'has 21 named functions' {
+        It 'has 20 named functions' {
             # Regression catch: drift past this count means someone
             # added/removed without updating $script:ExpectedFunctions.
             # If this fails, audit the diff and update both this number
             # AND the expected list above.
-            $script:Functions.Count | Should -Be 21
+            $script:Functions.Count | Should -Be 20
         }
     }
 

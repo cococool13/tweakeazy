@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clean a hard precondition for every script. Baseline at session start: 1537 PSScriptAnalyzer findings (3 Error, 1415 Warning, 119 Info).
 
 ### Removed
+- Dead launcher/lib exports with no production callers: `Write-LauncherBox`, unused `DriftKeys` snapshot field, `$script:UI_Accent`, `UI-RequireInternet` (keep `Ensure-Internet`), `Get-GpuDriverVersionManifest` (keep `Get-GpuManifest`), and unwired `Write-ToolkitScriptComplete`.
 - Spent historical audit reports (`CHANGES.md`, `CODEX-AUDIT.md`, `CURSOR-AUDIT.md`, `CLEANUP.md`, `SESSION-REPORT.md`). Living tracker is `KNOWN-ISSUES.md`; version history is this file.
 
 ### Added

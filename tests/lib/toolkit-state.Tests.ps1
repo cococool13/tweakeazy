@@ -36,7 +36,6 @@ BeforeDiscovery {
         @{ Name = 'Get-ToolkitLogFile' }
         @{ Name = 'Write-ToolkitLog' }
         @{ Name = 'Write-ToolkitScriptStart' }
-        @{ Name = 'Write-ToolkitScriptComplete' }
         @{ Name = 'Initialize-ToolkitState' }
         @{ Name = 'Get-ToolkitState' }
         @{ Name = 'Save-ToolkitState' }

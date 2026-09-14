@@ -96,8 +96,7 @@ function Fetch-RemoteManifest {
 function Get-GpuManifest {
     <#
     .SYNOPSIS
-        Returns just the GPU section of the manifest.
-        Drop-in replacement for Get-GpuDriverVersionManifest.
+        Returns just the GPU section of the version manifest.
     #>
     $manifest = Get-VersionManifest
     return $manifest.gpu

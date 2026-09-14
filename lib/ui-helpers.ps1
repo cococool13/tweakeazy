@@ -9,7 +9,6 @@ $script:UI_Success = "Green"
 $script:UI_Error = "Red"
 $script:UI_Warning = "Yellow"
 $script:UI_Info = "Gray"
-$script:UI_Accent = "Magenta"
 $script:UI_Label = "White"
 $script:UI_Soft = "DarkGray"
 
@@ -30,29 +29,6 @@ function UI-RequireAdmin {
         Write-Host ""
         Write-Host "  [ERROR] $ScriptName must be run as Administrator." -ForegroundColor $script:UI_Error
         Write-Host "  Right-click the script > 'Run with PowerShell' (as Admin)" -ForegroundColor $script:UI_Error
-        Write-Host ""
-        Read-Host "Press Enter to exit"
-        exit 1
-    }
-}
-
-function UI-RequireInternet {
-    # Direct .NET ping. Avoids Test-Connection's CimInstance overhead
-    # and the PSAvoidUsingComputerNameHardcoded false positive on
-    # well-known public DNS reachability targets.
-    $reachable = $false
-    $ping = [System.Net.NetworkInformation.Ping]::new()
-    try {
-        $reply = $ping.Send('8.8.8.8', 1500)
-        $reachable = ($reply.Status -eq [System.Net.NetworkInformation.IPStatus]::Success)
-    } catch [System.Net.NetworkInformation.PingException] {
-        $reachable = $false
-    } finally {
-        $ping.Dispose()
-    }
-    if (-not $reachable) {
-        Write-Host ""
-        Write-Host "  [ERROR] Internet connection required." -ForegroundColor $script:UI_Error
         Write-Host ""
         Read-Host "Press Enter to exit"
         exit 1

@@ -2,8 +2,8 @@
 #Requires -Modules @{ ModuleName='Pester'; ModuleVersion='5.0' }
 <#
 .SYNOPSIS
-    Behavioral tests for lib/gpu-download.ps1 — manifest loading,
-    per-vendor URL resolvers, and the download + verify chain.
+    Behavioral tests for lib/gpu-download.ps1 — per-vendor URL
+    resolvers and the download + verify chain.
 
 .DESCRIPTION
     Exercises every function via mocked Invoke-WebRequest +
@@ -50,35 +50,6 @@ Describe 'lib/gpu-download.ps1' {
             $script:GpuDriverStageRoot | Should -Not -BeNullOrEmpty
             $script:GpuDriverStageRoot | Should -Match 'GamingOpt'
             $script:GpuDriverStageRoot | Should -Match 'Drivers'
-        }
-    }
-
-    Context 'Get-GpuDriverVersionManifest — file load + throw on missing' {
-
-        BeforeEach {
-            $script:TmpDir = Join-Path ([System.IO.Path]::GetTempPath()) ("gpudl-test-" + [guid]::NewGuid())
-            New-Item -ItemType Directory -Path $script:TmpDir -Force | Out-Null
-        }
-
-        AfterEach {
-            if ($script:TmpDir -and (Test-Path $script:TmpDir)) {
-                Remove-Item -LiteralPath $script:TmpDir -Recurse -Force -ErrorAction SilentlyContinue
-            }
-        }
-
-        It 'parses a manifest file and returns the deserialized object' {
-            $jsonPath = Join-Path $script:TmpDir 'versions.json'
-            $script:SampleManifest | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonPath
-            $result = Get-GpuDriverVersionManifest -ManifestPath $jsonPath
-            $result.nvidia.version | Should -Be '572.83'
-            $result.amd.url | Should -Be 'https://example.com/amd-25.3.1.exe'
-            $result.intel.driverOnlyInf | Should -BeTrue
-        }
-
-        It 'throws a clear error when the manifest path does not exist' {
-            $missing = Join-Path $script:TmpDir 'does-not-exist.json'
-            { Get-GpuDriverVersionManifest -ManifestPath $missing } |
-                Should -Throw '*manifest not found*'
         }
     }
 
