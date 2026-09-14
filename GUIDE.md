@@ -65,8 +65,8 @@ Use this only when you already understand the trade-offs. It includes:
 - service and registry changes
 - startup cleanup
 - GPU MSI mode and network tuning
-- Windows Update suppression
-- VBS / HVCI / LSA trade-offs
+- Windows Update suppression (opt-in: `-IncludeSecurityTradeoffs`)
+- VBS / HVCI / LSA trade-offs (opt-in: `-IncludeSecurityTradeoffs`)
 - shell customization
 - Defender exclusions
 - app debloat and temp cleanup
@@ -217,7 +217,7 @@ This checks the same phases exposed by the launcher and the full apply flow so y
 
 - What it changes: runs the aggressive full stack across all phases.
 - Why run it: fastest route to the maximum scripted tuning pass.
-- Main risk: combines every compatibility and security trade-off in the repo.
+- Main risk: aggressive Safe + Advanced stack; Security Trade-offs stay behind `-IncludeSecurityTradeoffs`.
 - Undo: `REVERT-EVERYTHING.ps1`.
 
 #### Revert Everything

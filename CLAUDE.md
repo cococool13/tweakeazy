@@ -148,8 +148,8 @@ Numbered folders (`0 prerequisites/` → `10 verify/`) hold per-phase scripts.
   not elevated. Don't add partial-menu rendering for non-admin.
 - **Domain-joined / laptop hints**: surfaced in launcher header but APPLY still
   runs if the user proceeds — never auto-skip phases based on profile.
-- **Apply All currently bundles `Security Trade-off` phases** (VBS/HVCI/LSA/
-  Spectre/WU suppression) behind a single global confirm. Adding new
-  Security-Trade-off items to APPLY-EVERYTHING.ps1 inherits that behavior until
-  the `-IncludeSecurityTradeoffs:$false` gate lands in a future release. Until
-  then, default new opt-in items to standalone scripts only.
+- **Apply All leaves `Security Trade-off` phases off by default.** Phases 9–10
+  (VBS/HVCI/LSA/Spectre/WU suppression) run only when `-IncludeSecurityTradeoffs`
+  is passed. Launcher `[A]` prompts before passing that switch. Default new
+  Security Trade-off items to standalone scripts unless the user asks them
+  into the bundled APPLY path.
