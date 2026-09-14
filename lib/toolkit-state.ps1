@@ -501,7 +501,8 @@ function Get-ToolkitState {
         return $script:ToolkitState
     }
     if (Test-Path $script:ToolkitStateFile) {
-        $script:ToolkitState = Get-Content $script:ToolkitStateFile -Raw | ConvertFrom-Json -Depth 12
+        # ConvertFrom-Json -Depth is PS 6.2+; inbox 5.1 only has -InputObject.
+        $script:ToolkitState = Get-Content $script:ToolkitStateFile -Raw | ConvertFrom-Json
         return $script:ToolkitState
     }
     return $null
@@ -520,7 +521,8 @@ function Initialize-ToolkitState {
     # Preserve captured before-state once a manifest exists. Older callers used
     # -ForceNew during apply, which could destroy the only reliable revert data.
     if (Test-Path $script:ToolkitStateFile) {
-        $script:ToolkitState = Get-Content $script:ToolkitStateFile -Raw | ConvertFrom-Json -Depth 12
+        # ConvertFrom-Json -Depth is PS 6.2+; inbox 5.1 only has -InputObject.
+        $script:ToolkitState = Get-Content $script:ToolkitStateFile -Raw | ConvertFrom-Json
         return $script:ToolkitState
     }
 

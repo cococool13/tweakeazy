@@ -8,8 +8,7 @@ What this does:
   normally batches small packets together (adds ~200ms delay).
 
 Scripts included:
-  optimize-network.bat                  — Apply all network tweaks (.bat front-end)
-  optimize-network.ps1                  — Apply all network tweaks (.ps1, tracked)
+  optimize-network.ps1                  — Apply all network tweaks (tracked)
   revert-network.bat                    — Restore all defaults
                                           (no .ps1 revert: REVERT-EVERYTHING.ps1
                                           handles tracked-state restore)

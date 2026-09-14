@@ -59,7 +59,8 @@ $ErrorActionPreference = 'Stop'
 
 # Normalize: accept with/without .wsb extension.
 if (-not $ConfigName.EndsWith('.wsb')) { $ConfigName += '.wsb' }
-$source = Join-Path $RepoRoot 'tests/sandbox' $ConfigName
+# Two Join-Path calls: 3-arg Join-Path is PS 6+. File claims -Version 5.1.
+$source = Join-Path (Join-Path $RepoRoot 'tests/sandbox') $ConfigName
 if (-not (Test-Path -LiteralPath $source)) {
     Write-Error "Config not found: $source"
     exit 2
