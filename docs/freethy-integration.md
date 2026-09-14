@@ -14,7 +14,7 @@ This is the canonical record of which FR33THY artifacts were ported into this to
 
 | FR33THY file | Type | What it changes | Already covered by us? | Action | Target file |
 | --- | --- | --- | --- | --- | --- |
-| `1 Check/1-9 *.ps1` | .ps1 | Diagnostic checks (disk space, RAM, GPU, BIOS, CPU/RAM/GPU stress tests, HWInfo) | Partial — `BIOS-CHECKLIST.md` already references diagnostics | Decline; document tools in BIOS appendix | `BIOS-CHECKLIST.md` |
+| `1 Check/1-9 *.ps1` | .ps1 | Diagnostic checks (disk space, RAM, GPU, BIOS, CPU/RAM/GPU stress tests, HWInfo) | Partial — `11 hardware checks/` + `12 hardware/` | **Partial port** | `11 hardware checks/`, `12 hardware/` |
 | `2 Refresh/1-7 *.ps1` | .ps1 | Factory reset, autounattend.xml, reinstall, network driver bootstrap | No (out of scope — bare-metal flow) | Decline | `KNOWN-ISSUES.md` |
 | `3 Setup/1 BitLocker.ps1` | .ps1 | BitLocker disable | No | Decline (security-sensitive, manual decision) | `KNOWN-ISSUES.md` |
 | `3 Setup/2 Memory Compression.ps1` | .ps1 | `Disable-MMAgent -MemoryCompression` | No | Merge into `configure-mmagent.ps1` (Phase B group 1) | `5 registry tweaks/individual/configure-mmagent.ps1` |
@@ -60,10 +60,10 @@ This is the canonical record of which FR33THY artifacts were ported into this to
 | `6 Windows/31 UAC.ps1` | .ps1 | Lower UAC | No | Decline (security) | `KNOWN-ISSUES.md` |
 | `6 Windows/32 Core Isolation.ps1` | .ps1 | HVCI off | Yes (`8 security vs performance/configure-vbs.ps1`) | Decline | — |
 | `6 Windows/33 Defender Optimize.ps1` | .ps1 | Defender lockdown | Partial (we have exclusions) | Decline (crosses safety line) | `KNOWN-ISSUES.md` |
-| `6 Windows/34 Autoruns Startup Tasks & Apps Check.ps1` | .ps1 | Diagnostic | No | Decline (diagnostic) | — |
-| `6 Windows/35 Cleanup.ps1` | .ps1 | Temp cleanup | Yes (`9 cleanup/cleanup-temp.{bat,ps1}`) | Decline | — |
+| `6 Windows/34 Autoruns Startup Tasks & Apps Check.ps1` | .ps1 | Diagnostic | Partial | **Port launcher** | `13 external tools/launch-autoruns.ps1` |
+| `6 Windows/35 Cleanup.ps1` | .ps1 | Temp cleanup | Yes (`9 cleanup/cleanup-temp.ps1`) | Decline | — |
 | `6 Windows/36 Restore Point.ps1` | .ps1 | Restore point | Yes (`1 backup/create-backup.ps1`) | Decline | — |
-| `7 Hardware/1-8 *.ps1` | .ps1 | Polling rate / monitor tests / build guides | No | Decline (diagnostic / external) | `BIOS-CHECKLIST.md` |
+| `7 Hardware/1-8 *.ps1` | .ps1 | Polling rate / monitor tests / build guides | Partial — `12 hardware/` | **Partial port** | `12 hardware/` |
 | `8 Advanced/1 Defender.ps1` | .ps1 | Defender disable | Partial (we have exclusions) | Decline (overlap with `6 Windows/33`) | `KNOWN-ISSUES.md` |
 | `8 Advanced/2 Firewall.ps1` | .ps1 | Firewall config | No | Decline (security) | `KNOWN-ISSUES.md` |
 | `8 Advanced/3 Spectre Meltdown.ps1` | .ps1 | Disable speculative-execution mitigations | No | **Port** as Security Trade-off | `5 registry tweaks/individual/disable-spectre-meltdown.ps1` |
@@ -75,8 +75,8 @@ This is the canonical record of which FR33THY artifacts were ported into this to
 | `8 Advanced/9 Core 1 Thread 1.ps1` | .ps1 | Single-core CPU affinity for explorer | No | Decline (breaks multithreading) | `KNOWN-ISSUES.md` |
 | `8 Advanced/10 Priority.ps1` | .ps1 | Process priority registry | Partial (we set Game priority MMCSS) | Decline (overlap) | — |
 | `8 Advanced/11 Mpo.ps1` | .ps1 | DWM Multiplane Overlay disable | No | **Port** | `5 registry tweaks/individual/disable-mpo.ps1` |
-| `8 Advanced/12 Hardware Legacy Flip.ps1` | .ps1 | DWM legacy flip mode | No | Decline (DWM flip-model behavior is driver/build-sensitive) | `DISCOVERY-BACKLOG.md` |
-| `8 Advanced/13 Hardware Composed Independent Flip.ps1` | .ps1 | DWM composed-independent flip | No | Decline (paired with 12; same risk) | `DISCOVERY-BACKLOG.md` |
+| `8 Advanced/12 Hardware Legacy Flip.ps1` | .ps1 | DWM legacy flip mode | Yes (combined with 13) | **Port** | `5 registry tweaks/individual/dwm-flip-model.reg` |
+| `8 Advanced/13 Hardware Composed Independent Flip.ps1` | .ps1 | DWM composed-independent flip | Yes (combined with 12) | **Port** | `5 registry tweaks/individual/dwm-flip-model.reg` |
 | `8 Advanced/14 Ulps.ps1` | .ps1 | AMD ULPS disable | No | **Port** AMD-only | `6 gpu/configure-amd-ulps.ps1` |
 | `8 Advanced/15 Driver Whql Secure Boot Bypass.ps1` | .ps1 | Disable WHQL signing enforcement | No | Decline (real attack-surface increase) | `KNOWN-ISSUES.md` |
 | `8 Advanced/16 Keyboard Shortcuts.ps1` | .ps1 | Disable keyboard shortcuts | No | Decline (preference) | — |

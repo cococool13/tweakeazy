@@ -1,6 +1,9 @@
-# Manual Test Checklist — v1.0.0
+# Manual Test Checklist — v1.0.0 snapshot + current launcher keys
 
-This is the runtime evidence the v1.0.0 release is gated on. Static analysis and parser validation passed on macOS during the production-readiness pass; everything in this checklist requires a real Windows host. Should take about an hour on a fresh Windows 11 VM.
+This was the v1.0.0 runtime gate. Keep using it on a real Windows host
+(about an hour on a fresh Win11 VM). Rows below for `[11]` `[12]` `[13]`
+and the Apply trade-off gate match the live `launcher.ps1`, not the
+original v1.0.0 menu (which stopped at `[10]`).
 
 ## Test environment
 
@@ -26,8 +29,8 @@ Run as Administrator from the repo root:
 - [ ] **1.1** Header line 1 shows `Win11 Gaming Toolkit` left-aligned and `v1.0.0` right-aligned, both inside a Unicode box (`┌─┐ │ │ └─┘`).
 - [ ] **1.2** Header line 2 reads `Admin: yes   Build: <number>   Manifest: <N> entries`. Build number is the current Windows build (`(Get-CimInstance Win32_OperatingSystem).BuildNumber`). Manifest count is `0` on a clean VM, or whatever `state.steps` count exists.
 - [ ] **1.3** "Quick actions" label is yellow. `[A]` `[V]` `[R]` brackets are cyan. Action labels are white.
-- [ ] **1.4** "Categories" section lists exactly these keys: `[0]` `[1]` `[2]` `[4]` `[5]` `[6]` `[7]` `[8]` `[9]` `[10]`. No `[3]` (privacy/telemetry tweaks live in `[5]`; this is a documented design deviation in `CLEANUP.md`).
-- [ ] **1.5** Tier color: `Safe` rows render in green (categories 0, 1, 7, 10). `Advanced` rows render in yellow (categories 2, 4, 5, 6, 9). `Trade-off` row renders in red (category 8). The display label `Trade-off` shows in the menu, not the canonical `Security Trade-off`.
+- [ ] **1.4** "Categories" section lists exactly these keys: `[0]` `[1]` `[2]` `[4]` `[5]` `[6]` `[7]` `[8]` `[9]` `[10]` `[11]` `[12]` `[13]`. No `[3]` (privacy/telemetry tweaks live in `[5]`).
+- [ ] **1.5** Tier color: `Safe` rows render in green (categories 0, 1, 7, 10, 11, 12). `Advanced` rows render in yellow (categories 2, 4, 5, 6, 9, 13). `Trade-off` row renders in red (category 8). The display label `Trade-off` shows in the menu, not the canonical `Security Trade-off`.
 - [ ] **1.6** "Tools" section lists `[M]` `[L]` `[B]` `[?]` `[Q]` on two lines, brackets cyan, labels in default text.
 - [ ] **1.7** Box-drawing characters and section dividers render in dark gray, not glyph-corrupted (no `?` or replacement boxes).
 - [ ] **1.8** No emoji anywhere on screen. No `[OK]` / `!` indicators show on a clean VM (manifest is empty → no status to display).
@@ -56,8 +59,12 @@ Take a VM snapshot named `pre-apply`. Then in the **admin** PowerShell window:
 .\APPLY-EVERYTHING.ps1
 ```
 
+Default run skips Phase 9 (Windows Update suppression) and Phase 10
+(VBS / HVCI / LSA / Spectre). Launcher `[A]` asks first; default is No.
+Do **not** pass `-IncludeSecurityTradeoffs` for this section.
+
 - [ ] **4.1** Script runs to completion without throwing. If it does throw, capture the line and the failing `Run-Step`.
-- [ ] **4.2** Final summary reports `0 Failed`. (`Succeeded` and `Warned` counts can vary by VM — what matters is zero failures.)
+- [ ] **4.2** Final summary reports `0 Failed`. (`Succeeded` and `Warned` counts can vary by VM — what matters is zero failures.) Phase 9 and 10 report skipped.
 - [ ] **4.3** `C:\ProgramData\Win11GamingToolkit\state\manifest.json` exists and has `state.steps`, `state.registry`, `state.services`, `state.dns.interfaces`, `state.defender.added`, `state.packages.removed` populated. Open in Notepad or `Get-Content -Raw | ConvertFrom-Json` and spot-check that `lastUpdated` is recent and `state.context.windowsVersion` is sane.
 - [ ] **4.4** Reboot the VM. After login: keyboard, mouse, network, audio, and display all work. Login prompt accepts the password. Desktop renders.
 
@@ -69,7 +76,7 @@ Take a VM snapshot named `pre-apply`. Then in the **admin** PowerShell window:
 *(Note the backtick — the folder has a space.)*
 
 - [ ] **5.1** Tracked tweaks report `APPLIED` (or `OK` per the verify-tweaks helper). No `DRIFTED` rows.
-- [ ] **5.2** Footer reads `Security Trade-off items are intentional in Apply Everything.` — exact canonical wording (the b36d773 fix landed this).
+- [ ] **5.2** Footer still prints `Security Trade-off items are intentional in Apply Everything.` (verify-tweaks wording). Those items were **not** applied on the default run in section 4.
 - [ ] **5.3** Manifest path printed in the footer matches `C:\ProgramData\Win11GamingToolkit\state\manifest.json`.
 
 ## 6. Launcher render — post-apply manifest indicators
@@ -77,7 +84,7 @@ Take a VM snapshot named `pre-apply`. Then in the **admin** PowerShell window:
 Re-run `.\launcher.ps1` after the apply.
 
 - [ ] **6.1** Header shows `Manifest: <N>` where `<N>` is greater than zero and matches roughly the count of `state.steps` entries in the manifest.
-- [ ] **6.2** Categories that ran apply steps now show `[OK] applied` in cyan (e.g. category 4 Services, category 5 Registry, category 7 Network, category 8 Security, category 9 Cleanup).
+- [ ] **6.2** Categories that ran apply steps now show `[OK] applied` in cyan (e.g. category 4 Services, category 5 Registry, category 7 Network, category 9 Cleanup). Category 8 stays blank after a default apply (trade-offs were skipped). `[11]` `[12]` `[13]` stay blank (no tracked prefixes).
 - [ ] **6.3** No category shows `! drift` immediately after apply. (Drift would mean the OS already reverted a tracked value, which shouldn't happen on a clean apply.)
 - [ ] **6.4** Quit with `Q`.
 
@@ -107,12 +114,12 @@ Press `B`.
 
 Press `?`.
 
-- [ ] **10.1** Help screen lists every keybinding (`[A]` `[V]` `[R]` `[0]`–`[10]` `[M]` `[L]` `[B]` `[?]` `[Q]`) with one-line descriptions. Status indicator legend at the bottom.
+- [ ] **10.1** Help screen lists every keybinding (`[A]` `[V]` `[R]` `[0]` `[1]` `[2]` `[4]`–`[13]` `[M]` `[L]` `[B]` `[?]` `[Q]`) with one-line descriptions. Status indicator legend at the bottom. No `[3]`, `D`, `G`, or `W`.
 - [ ] **10.2** Enter returns to the main menu.
 
 ## 11. Category submenus
 
-For each of the 10 categories, press the key, confirm:
+For each category, press the key, confirm:
 - [ ] **11.1** `[0]` Prerequisites — submenu lists `0 prerequisites/install-runtimes.ps1`.
 - [ ] **11.2** `[1]` Backup — submenu lists `create-backup.ps1` only.
 - [ ] **11.3** `[2]` Power plan — submenu lists `configure-power.ps1` and `revert-power.ps1`.
@@ -123,7 +130,10 @@ For each of the 10 categories, press the key, confirm:
 - [ ] **11.8** `[8]` Security vs performance — submenu lists `configure-vbs.ps1`, `disable-dep.ps1`, `enable-dep.ps1`. Tier label in the submenu header reads `Trade-off`.
 - [ ] **11.9** `[9]` Cleanup — submenu lists `chris-titus-winutil.bat`, `cleanup-temp.ps1`, `debloat.ps1`.
 - [ ] **11.10** `[10]` Verify — submenu lists `verify-tweaks.ps1`.
-- [ ] **11.11** From any submenu, `Q` returns to the main menu cleanly.
+- [ ] **11.11** `[11]` Hardware checks — submenu lists `check-storage.ps1`, `check-uwp-apps.ps1`, `show-system-summary.ps1`. Tier `Safe`.
+- [ ] **11.12** `[12]` Hardware — submenu lists the read-only checks (`check-rebar.ps1`, `check-msi-mode.ps1`, `check-ram.ps1`, `check-pagefile.ps1`, `check-input-polling.ps1`, `check-directstorage.ps1`, stress wrappers). Tier `Safe`.
+- [ ] **11.13** `[13]` External tools — submenu lists `launch-autoruns.ps1`, `launch-shutup10.ps1`, `launch-device-cleanup.ps1`. Tier `Advanced`.
+- [ ] **11.14** From any submenu, `Q` returns to the main menu cleanly.
 
 ## 12. Revert path
 
@@ -164,7 +174,7 @@ Quick reads on the post-apply VM:
 ## 16. WinUtil + DDU integration spot checks
 
 - [ ] **16.1** From the launcher, navigate `[9]` → `chris-titus-winutil.bat`. The script downloads, prints both SHA-256 values, compares them, and only continues on match.
-- [ ] **16.2** `DduManual.ps1` (run directly) writes a `Settings.xml` next to the DDU executable. Open it in Notepad — the `<DisplayDriverUninstaller Version=...>` header is present (legacy schema requirement, OK to be hardcoded; documented in `CHANGES.md`).
+- [ ] **16.2** `DduManual.ps1` (run directly) writes a `Settings.xml` next to the DDU executable. Open it in Notepad — the `<DisplayDriverUninstaller Version=...>` header is present (legacy schema pin; cosmetic).
 
 ---
 
