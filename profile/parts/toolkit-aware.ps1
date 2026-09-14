@@ -98,7 +98,8 @@ function Get-ToolkitManifest {
         Write-Warning "Manifest not found at $path. Run any toolkit script (or APPLY-EVERYTHING.ps1) to create it."
         return
     }
-    Get-Content -Raw -LiteralPath $path | ConvertFrom-Json -Depth 12
+    # ConvertFrom-Json -Depth is PS 6.2+; inbox 5.1 only has -InputObject.
+    Get-Content -Raw -LiteralPath $path | ConvertFrom-Json
 }
 
 function Test-ToolkitInvariants {

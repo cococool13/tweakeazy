@@ -69,6 +69,8 @@ run is Safe + Advanced only:
 - service and registry changes
 - startup cleanup
 - GPU MSI mode and network tuning
+- Windows Update suppression (opt-in: `-IncludeSecurityTradeoffs`)
+- VBS / HVCI / LSA trade-offs (opt-in: `-IncludeSecurityTradeoffs`)
 - shell customization
 - Defender exclusions
 - app debloat and temp cleanup

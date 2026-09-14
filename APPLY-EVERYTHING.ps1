@@ -452,9 +452,9 @@ if ($gpuDevices.Count -eq 0) {
 # ============================================================
 UI-Section -Title "Phase 7.5: GPU Driver Flow" -Context "Kept separate so DDU can own the risky driver handoff"
 UI-Note -Message "[SKIP] GPU driver install requires DDU flow." -Color $script:UI_Warning
-UI-Note -Message "Run DduAuto.ps1 or launcher [G] separately." -Color $script:UI_Warning
+UI-Note -Message "Run DduAuto.ps1 or launcher category 6 (GPU) separately." -Color $script:UI_Warning
 Add-ToolkitStepResult -Key "gpu-driver-install" -Tier "Advanced" -Status "skipped" `
-    -Reason "Requires DDU flow. Run DduAuto.ps1 or launcher [G] separately."
+    -Reason "Requires DDU flow. Run DduAuto.ps1 or launcher category 6 (GPU) separately."
 
 # ============================================================
 # STEP 8: NETWORK
@@ -713,7 +713,9 @@ UI-Summary -DoneMessage "Apply Everything complete" -Details @(
     "Manifest:   $(Get-ToolkitManifestPath)",
     "Follow-up:  BIOS-CHECKLIST.md, Verify, optional DDU / WinUtil"
 ) -RevertHint "Run REVERT-EVERYTHING.ps1 after the reboot if you want to undo the tracked path."
-UI-Note -Message "This run included Windows Update suppression and security trade-off tweaks." -Color $script:UI_Warning
+if ($IncludeSecurityTradeoffs) {
+    UI-Note -Message "This run included Windows Update suppression and security trade-off tweaks." -Color $script:UI_Warning
+}
 UI-Note -Message "Reboot is required before judging results." -Color $script:UI_Warning
 
 if (UI-AskYesNo -Prompt "Reboot now?") {

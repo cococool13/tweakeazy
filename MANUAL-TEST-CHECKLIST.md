@@ -121,12 +121,12 @@ Press `?`.
 
 For each category, press the key, confirm:
 - [ ] **11.1** `[0]` Prerequisites — submenu lists `0 prerequisites/install-runtimes.ps1`.
-- [ ] **11.2** `[1]` Backup — submenu lists `backup-registry.bat`, `create-backup.ps1`, `create-restore-point.bat`.
-- [ ] **11.3** `[2]` Power plan — submenu lists three scripts including `enable-ultimate-performance.bat`.
-- [ ] **11.4** `[4]` Services — submenu lists at least 14 paired `*-disable.bat` / `*-enable.bat` plus `apply-all.bat`, `disable-services.ps1`, `enable-services.ps1`.
-- [ ] **11.5** `[5]` Registry tweaks — submenu lists ~30 `.reg` and `.ps1` files including `apply-all.reg`, `revert-all.reg`, `privacy-telemetry.reg`, `disable-spectre-meltdown.ps1`.
+- [ ] **11.2** `[1]` Backup — submenu lists `create-backup.ps1` only.
+- [ ] **11.3** `[2]` Power plan — submenu lists `configure-power.ps1` and `revert-power.ps1`.
+- [ ] **11.4** `[4]` Services — submenu lists `disable-services.ps1`, `enable-services.ps1`, and the `mobsync-*.ps1` / wrapping `mobsync-*.bat` pair.
+- [ ] **11.5** `[5]` Registry tweaks — submenu lists ~30 `.reg` and `.ps1` files including `apply-all.reg`, `revert-all.reg`, `privacy-telemetry.reg`, `disable-spectre-meltdown.ps1`. No `backup-current.bat`.
 - [ ] **11.6** `[6]` GPU — submenu lists vendor-specific subfolders flattened, including `enable-msi-mode.ps1`, `nvidia/force-p0-state.ps1`, `configure-amd-ulps.ps1`, `install-gpu-driver.ps1`.
-- [ ] **11.7** `[7]` Network — submenu lists `disable-adapter-power-savings.ps1`, `enable-adapter-power-savings.ps1`, `disable-ipv6-binding.ps1`, `enable-ipv6-binding.ps1`, `optimize-network.ps1`, `revert-network.bat`.
+- [ ] **11.7** `[7]` Network — submenu lists `disable-adapter-power-savings.ps1`, `enable-adapter-power-savings.ps1`, `disable-ipv6-binding.ps1`, `enable-ipv6-binding.ps1`, `optimize-network.ps1`, `revert-network.bat`. No `optimize-network.bat`.
 - [ ] **11.8** `[8]` Security vs performance — submenu lists `configure-vbs.ps1`, `disable-dep.ps1`, `enable-dep.ps1`, `disable-vbs.bat`, `enable-vbs.bat`. Tier label in the submenu header reads `Trade-off`.
 - [ ] **11.9** `[9]` Cleanup — submenu lists `chris-titus-winutil.bat`, `cleanup-temp.bat`, `cleanup-temp.ps1`, `debloat.ps1`.
 - [ ] **11.10** `[10]` Verify — submenu lists `verify-tweaks.ps1`.
@@ -156,7 +156,7 @@ Take a snapshot named `post-apply` first. Then:
 ## 14. Locale-stable ultimate-performance activation
 
 ```powershell
-.\2` power plan\enable-ultimate-performance.bat
+.\2` power plan\configure-power.ps1
 ```
 
 - [ ] **14.1** Script duplicates the Ultimate Performance scheme from a fixed GUID (`e9a42b02-d5df-448d-aa00-03f14749eb61`), creates the active scheme, and reports success on a non-English Windows install. (Set OS display language to a non-English locale before running if you can — the A9 fix made this independent of `for /f` parsing.)
