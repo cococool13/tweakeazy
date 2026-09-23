@@ -154,6 +154,8 @@ Run-Step "Re-enabling Game Bar / DVR" {
     reg add "HKCU\System\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
     reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
     reg add "HKCU\Software\Microsoft\GameBar" /v "UseNexusForGameBarEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+    # Apply asserts Game Mode on. DWORD 1 is the Windows 11 default.
+    reg add "HKCU\Software\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
 }
 Run-Step "Restoring mouse acceleration" {
     reg add "HKCU\Control Panel\Mouse" /v "MouseSpeed" /t REG_SZ /d "1" /f 2>&1 | Out-Null
@@ -162,6 +164,11 @@ Run-Step "Restoring mouse acceleration" {
 }
 Run-Step "Restoring visual effects defaults" {
     reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" /v "VisualFXSetting" /t REG_DWORD /d 0 /f 2>&1 | Out-Null
+    # Apply writes the performance mask 9012038012000000. VisualFXSetting=0
+    # ("Let Windows choose") pairs with 9E1E078012000000. FontSmoothing 2 is
+    # ClearType, the Windows default Apply also asserts.
+    reg add "HKCU\Control Panel\Desktop" /v "UserPreferencesMask" /t REG_BINARY /d "9E1E078012000000" /f 2>&1 | Out-Null
+    reg add "HKCU\Control Panel\Desktop" /v "FontSmoothing" /t REG_SZ /d "2" /f 2>&1 | Out-Null
     reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v "MinAnimate" /t REG_SZ /d "1" /f 2>&1 | Out-Null
     reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarAnimations" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
     if (-not (Restore-ToolkitRegistryValue -Id "reg:Win32PrioritySeparation")) {
@@ -179,6 +186,35 @@ Run-Step "Restoring Explorer defaults" {
 Run-Step "Restoring default sound scheme" {
     reg add "HKCU\AppEvents\Schemes" /ve /t REG_SZ /d ".Default" /f 2>&1 | Out-Null
     reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" /v "DisableStartupSound" /t REG_DWORD /d 0 /f 2>&1 | Out-Null
+    # Apply blanks these .Current values. The scheme name alone does not
+    # refill them, so each event stays silent. Copy the Windows Default
+    # sibling (.Default) back onto .Current. Same event list as Apply.
+    $soundEvents = @(
+        ".Default",
+        "DeviceConnect",
+        "DeviceDisconnect",
+        "DeviceFail",
+        "MailBeep",
+        "Notification.Default",
+        "SystemAsterisk",
+        "SystemExclamation",
+        "SystemNotification",
+        "WindowsUAC"
+    )
+    foreach ($soundEvent in $soundEvents) {
+        $defaultKey = "HKCU:\AppEvents\Schemes\Apps\.Default\$soundEvent\.Default"
+        $currentKey = "HKCU\AppEvents\Schemes\Apps\.Default\$soundEvent\.Current"
+        $wav = $null
+        $schemeItem = Get-Item -LiteralPath $defaultKey -ErrorAction SilentlyContinue
+        if ($schemeItem) {
+            $wav = $schemeItem.GetValue("")
+        }
+        if ([string]::IsNullOrEmpty([string]$wav)) {
+            reg delete $currentKey /ve /f 2>&1 | Out-Null
+        } else {
+            reg add $currentKey /ve /t REG_SZ /d "$wav" /f 2>&1 | Out-Null
+        }
+    }
 }
 Run-Step "Restoring accessibility defaults" {
     reg add "HKCU\Control Panel\Accessibility\StickyKeys" /v "Flags" /t REG_SZ /d "510" /f 2>&1 | Out-Null
