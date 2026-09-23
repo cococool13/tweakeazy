@@ -62,9 +62,10 @@ BeforeDiscovery {
         # Most legacy scripts in this folder use freeform header comments
         # instead of PowerShell comment-based-help blocks. Get-Help <script>
         # returns nothing for these — real user impact.
-        'configure-mmagent.ps1'
+        # Cleared once .SYNOPSIS/.DESCRIPTION landed:
+        #   configure-mmagent.ps1, disable-mpo.ps1, enable-windows-update.ps1,
+        #   revert-mmagent.ps1, uninstall-timer-resolution-service.ps1
         'disable-edge-background.ps1'
-        'disable-mpo.ps1'
         'disable-ntfs-last-access.ps1'
         'disable-spectre-meltdown.ps1'
         'disable-windows-update.ps1'
@@ -73,7 +74,6 @@ BeforeDiscovery {
         'enable-mpo.ps1'
         'enable-ntfs-last-access.ps1'
         'enable-spectre-meltdown.ps1'
-        'enable-windows-update.ps1'
         'enable-write-cache-flush.ps1'
         # Renamed in worktree commit 127fda2:
         #   explorer-affinity-core1.ps1 → disable-explorer-affinity.ps1
@@ -83,8 +83,6 @@ BeforeDiscovery {
         'install-timer-resolution-service.ps1'
         'pause-windows-update.ps1'
         'resume-windows-update.ps1'
-        'revert-mmagent.ps1'
-        'uninstall-timer-resolution-service.ps1'
     )
     $script:ApplyHelperGaps = @(
         # install-timer-resolution-service.ps1 writes via raw `sc.exe`/`New-Service`
@@ -105,6 +103,12 @@ BeforeDiscovery {
         'enable-windows-update.ps1'
         'uninstall-timer-resolution-service.ps1'
         'revert-mmagent.ps1'
+
+        # enable-hags.ps1 writes the canonical HwSchMode=2 through
+        # Set-ToolkitRegistryValue. It is the experimental on-switch,
+        # not a manifest restore. Surfaced when the HAGS pair joined
+        # $pairs; disable-hags.ps1 still asserts the apply helper.
+        'enable-hags.ps1'
     )
 
     # Pair manifest (apply, revert). Driven from explicit data rather
@@ -121,6 +125,19 @@ BeforeDiscovery {
         @{ Apply = 'pause-windows-update.ps1'; Restore = 'resume-windows-update.ps1' }
         @{ Apply = 'install-timer-resolution-service.ps1'; Restore = 'uninstall-timer-resolution-service.ps1' }
         @{ Apply = 'configure-mmagent.ps1'; Restore = 'revert-mmagent.ps1' }
+        # Newer opt-in pairs. Per-script parse/admin/log already covered
+        # them; listing them here runs helper-parity asserts too.
+        @{ Apply = 'disable-allow-telemetry.ps1'; Restore = 'enable-allow-telemetry.ps1' }
+        @{ Apply = 'disable-diagtrack.ps1'; Restore = 'enable-diagtrack.ps1' }
+        @{ Apply = 'disable-ceip.ps1'; Restore = 'enable-ceip.ps1' }
+        @{ Apply = 'disable-activity-history.ps1'; Restore = 'enable-activity-history.ps1' }
+        @{ Apply = 'disable-advertising-id.ps1'; Restore = 'enable-advertising-id.ps1' }
+        @{ Apply = 'disable-cortana.ps1'; Restore = 'enable-cortana.ps1' }
+        @{ Apply = 'disable-web-search-start.ps1'; Restore = 'enable-web-search-start.ps1' }
+        @{ Apply = 'disable-edge-prefetch.ps1'; Restore = 'enable-edge-prefetch.ps1' }
+        @{ Apply = 'configure-pagefile.ps1'; Restore = 'revert-pagefile.ps1' }
+        @{ Apply = 'disable-hags.ps1'; Restore = 'enable-hags.ps1' }
+        @{ Apply = 'disable-storage-sense.ps1'; Restore = 'enable-storage-sense.ps1' }
     )
 
     # Per-script test cases (skip dedicated + read-only). The Help-gap
