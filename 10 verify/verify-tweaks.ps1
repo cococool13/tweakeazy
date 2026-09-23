@@ -9,6 +9,11 @@
 #   - SKIPPED UNSUPPORTED
 #   - DRIFTED / FAILED
 #
+# Storage Sense and Security Trade-off checks (Windows Update, VBS,
+# HVCI, Spectre) run only when that step is recorded as applied.
+# Default Apply All does not write those steps, so they are not FAIL
+# rows. power:plan is recorded by Apply All and by configure-power.ps1.
+#
 # Does NOT change anything.
 # ============================================================
 
@@ -42,18 +47,29 @@ function Check {
         [string]$Label,
         [scriptblock]$Test,
         [string]$StepKey = "",
-        [scriptblock]$StepKeyResolver = $null
+        [scriptblock]$StepKeyResolver = $null,
+        # Opt-in and Security Trade-off rows. Default Apply All does not
+        # write these steps. Grade them only after status "applied", so a
+        # missing toggle is not a FAIL and a skip record is not a DRIFT.
+        [switch]$OnlyIfRecorded
     )
+
+    if ($OnlyIfRecorded -and ((Get-ToolkitRecordedStatus -Key $StepKey) -ne "applied")) {
+        return
+    }
 
     try {
         $result = & $Test
         $resolvedStepKey = if ($StepKeyResolver) { & $StepKeyResolver } else { $StepKey }
-        if ($result -eq "SKIP") {
+        # String on the left. On PowerShell 7, $true -eq "SKIP" is true
+        # because the boolean side coerces any non-empty string to $true,
+        # so every passing check was reported SKIPPED.
+        if ("SKIP" -eq $result) {
             Write-CheckStatus -Label $Label -Status "SKIPPED" -Color DarkYellow
             $script:unsupported++
             return
         }
-        if ($result -eq "WARN") {
+        if ("WARN" -eq $result) {
             Write-CheckStatus -Label $Label -Status "WARN" -Color Yellow
             $script:warn++
             return
@@ -155,10 +171,11 @@ Check "Edge background mode disabled" {
     (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "BackgroundModeEnabled" -ErrorAction SilentlyContinue).BackgroundModeEnabled -eq 0
 } "reg:EdgeBackgroundModeEnabled"
 
+# Opt-in script only (disable-storage-sense.ps1). Not part of Apply All.
 Check "Storage Sense disabled" {
     # Per-user toggle; value name is the literal string "01" (DWORD).
     (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy" -Name "01" -ErrorAction SilentlyContinue)."01" -eq 0
-} "reg:StorageSenseMaster"
+} "reg:StorageSenseMaster" -OnlyIfRecorded
 
 # ============================================================
 # SERVICES
@@ -281,16 +298,18 @@ Check "Cloudflare / Google DNS present on at least one adapter" {
 
 # ============================================================
 # WINDOWS UPDATE + SECURITY TRADE-OFFS
+# Graded only when Apply All was run with -IncludeSecurityTradeoffs
+# or the matching standalone script recorded the step.
 # ============================================================
 Check "Windows Update auto-restart blocked" {
     (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "NoAutoRebootWithLoggedOnUsers" -ErrorAction SilentlyContinue).NoAutoRebootWithLoggedOnUsers -eq 1
-} "reg:NoAutoRebootWithLoggedOnUsers"
+} "reg:NoAutoRebootWithLoggedOnUsers" -OnlyIfRecorded
 
 Check "Windows Update service disabled" {
     $service = Get-Service -Name "wuauserv" -ErrorAction SilentlyContinue
     if (-not $service) { return "SKIP" }
     $service.StartType -eq "Disabled"
-} "service:wuauserv"
+} "service:wuauserv" -OnlyIfRecorded
 # Phase 14 stops wuauserv to clear SoftwareDistribution\Download, then starts
 # it again unless Phase 9 recorded service:wuauserv as applied (reason
 # windows-update) and the live start type is Disabled. A default Apply All
@@ -307,20 +326,20 @@ Check "VBS disabled" {
     $vbs = Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
     if (-not $vbs) { return "SKIP" }
     $vbs.VirtualizationBasedSecurityStatus -eq 0
-} "reg:EnableVBS"
+} "reg:EnableVBS" -OnlyIfRecorded
 
 Check "HVCI disabled" {
     $val = (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -ErrorAction SilentlyContinue).Enabled
     if ($null -eq $val) { return "SKIP" }
     $val -eq 0
-} "reg:HVCIEnabled"
+} "reg:HVCIEnabled" -OnlyIfRecorded
 
 Check "Spectre / Meltdown mitigations override applied" {
     $mmPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"
     $override = (Get-ItemProperty $mmPath -Name "FeatureSettingsOverride" -ErrorAction SilentlyContinue).FeatureSettingsOverride
     $mask = (Get-ItemProperty $mmPath -Name "FeatureSettingsOverrideMask" -ErrorAction SilentlyContinue).FeatureSettingsOverrideMask
     ($override -eq 3) -and ($mask -eq 3)
-} "reg:FeatureSettingsOverride"
+} "reg:FeatureSettingsOverride" -OnlyIfRecorded
 
 Check "Toolkit-added Defender exclusions are still present" {
     if (-not $manifest -or -not $manifest.defender -or @($manifest.defender.added).Count -eq 0) {
@@ -383,5 +402,5 @@ if ($manifest) {
     UI-Note -Message "Manifest: $(Get-ToolkitManifestPath)"
     UI-Note -Message "Recorded package removals: $(@($manifest.packages.removed).Count)"
 }
-UI-Note -Message "Security Trade-off items are intentional in Apply Everything."
+UI-Note -Message "Security Trade-off and Storage Sense checks are graded only when their step is recorded. Default Apply All leaves them off."
 UI-Exit

@@ -22,7 +22,8 @@ cd <repo>
 Expectation:
 - `Manifest` section says "No manifest found."
 - Most checks report `FAIL`.
-- Some checks report `PREEXISTING` (e.g., HAGS may already be on if Windows enabled it; transparency may already match a custom theme).
+- Storage Sense, Windows Update, VBS, HVCI, and Spectre lines are absent. Those checks run only after their step is recorded.
+- Some checks report `PREEXISTING` (e.g., HAGS may already be on if Windows enabled it; transparency may already match a custom theme). An Ultimate plan with no `power:plan` step reports `PREEXISTING`.
 - No `ERROR` lines. Any `ERROR` is a bug — open an issue with the line that errored.
 
 ## 2. Apply Everything (clean run)
@@ -48,7 +49,7 @@ Spot checks against bug fixes A1–A10:
 | GPU MSI mode targets only real GPUs | `(Get-Content manifest.json \| ConvertFrom-Json).registry \| Get-Member -Type NoteProperty \| Where Name -like 'gpu-msi:*'` returns only NVIDIA / AMD / Intel adapter IDs, not Microsoft Basic / IDD. (A2) |
 | inetpub guard | If IIS-WebServer is enabled on the test VM, the apply step prints "Skipping inetpub removal: IIS appears installed." (A4) |
 | `visual-effects-performance.reg` | If you also import this file directly, registry inspect of `HKCU\Control Panel\Desktop\UserPreferencesMask` should be REG_BINARY type. (A1) |
-| Spectre / Meltdown applied | `Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management' -Name FeatureSettingsOverride*` shows both keys = 3. |
+| Spectre / Meltdown applied | Only after `-IncludeSecurityTradeoffs`. Default Apply All does not write these keys. `Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management' -Name FeatureSettingsOverride*` shows both keys = 3 when that switch was passed. |
 | MPO disabled | `Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' -Name OverlayTestMode` returns 5. |
 
 ## 3. Verify post-apply
@@ -59,7 +60,9 @@ Spot checks against bug fixes A1–A10:
 
 Expectation:
 - `APPLIED BY TOOLKIT` count matches roughly the number of tracked items applied.
+- Ultimate Performance reports `APPLIED` (`power:plan` recorded).
 - `DRIFTED` is 0.
+- `FAIL` does not include Storage Sense, Windows Update, VBS, HVCI, or Spectre. Those lines are absent. Footer: `Security Trade-off and Storage Sense checks are graded only when their step is recorded. Default Apply All leaves them off.`
 - `Apply Everything coverage` is 95% or higher.
 
 ## 4. Re-apply (idempotency)
