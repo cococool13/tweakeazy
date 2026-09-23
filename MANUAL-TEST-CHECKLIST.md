@@ -159,7 +159,7 @@ Quick reads on the post-apply VM:
 - [ ] **15.2** **A2**: `Get-PnpDevice -Class Display` shows multiple display adapters in the OS, but `manifest.json`'s `state.registry` only has `gpu-msi:*` entries for ones whose vendor matches `VEN_10DE` (NVIDIA), `VEN_1002` (AMD), or `VEN_8086` (Intel). No virtual displays (Microsoft Basic, IDD, OBS Virtual Cam, Parsec) are tracked.
 - [ ] **15.3** **A4**: If Windows Optional Features → IIS-WebServer is enabled, `C:\inetpub` is not deleted by APPLY-EVERYTHING.ps1's cleanup phase. (Run `Get-WindowsOptionalFeature -Online -FeatureName IIS-WebServer-Role`. If `Enabled`, confirm directory still exists post-apply.)
 - [ ] **15.4** **A6**: `DduManual.ps1` reports a downloaded SHA-256 hash that matches `versions.json`'s pinned value before extraction; throws if mismatched.
-- [ ] **15.5** **A7**: `9 cleanup\chris-titus-winutil.bat` prints the expected SHA-256 from `WINUTIL_SHA256` constant, computes the actual hash, and refuses to run if they differ.
+- [ ] **15.5** **A7**: `9 cleanup\chris-titus-winutil.bat` prints the expected SHA-256 from `versions.json` (`tools.winutil`, via `Get-ToolManifest`), computes the actual hash, and refuses to run if they differ.
 
 ## 16. WinUtil + DDU integration spot checks
 

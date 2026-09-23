@@ -106,7 +106,8 @@ function Get-GpuManifest {
 function Get-ToolManifest {
     <#
     .SYNOPSIS
-        Returns a specific tool entry from the manifest (ddu, sevenZip).
+        Returns a specific tool entry from the manifest
+        (ddu, sevenZip, winutil, shutup10, autoruns, deviceCleanup).
     #>
     param([Parameter(Mandatory)][string]$Name)
 
