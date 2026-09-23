@@ -23,6 +23,7 @@ Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clea
 - Defense-in-depth enforcement of `$neverRemove` safety list in `9 cleanup/debloat.ps1`. Previously declared but never used (latent safety gap exposed by `PSUseDeclaredVarsMoreThanAssignments`). (`f71d130`)
 
 ### Fixed
+- TCP timestamp revert no longer turns RFC 1323 timestamps on. Stock Windows 11 and Apply both leave them disabled, and the netsh value is not in the manifest, so `REVERT-EVERYTHING.ps1` and `7 network/revert-network.bat` set `timestamps=disabled`. Code-complete, runtime-pending — see `tests/manual/REVERT-EVERYTHING.md` and checklist item 15.6.
 - PowerShell 5.1 load-path: drop `ConvertFrom-Json -Depth` (PS 6.2+) in `Get-ToolkitState` / `Initialize-ToolkitState` / `Get-ToolkitManifest`; replace 3-arg `Join-Path` in `tools/Start-SandboxSession.ps1` with two 2-arg calls. AST invariant in `tests/invariants/ps51-load-path.Tests.ps1`.
 - 3 `PSScriptAnalyzer` Error-severity findings — replaced `Test-Connection -ComputerName "8.8.8.8"` with `[System.Net.NetworkInformation.Ping]` in `lib/download-helpers.ps1`, `lib/ui-helpers.ps1`, `0 prerequisites/install-runtimes.ps1`. Sidesteps a false-positive rule AND drops Cim warmup latency from ~200–500ms to ~5–50ms. (`4e993a9`)
 - 26 .ps1 files reformatted via `Invoke-Formatter` — clears 337 whitespace/indent warnings in one verified-balanced (216/216 line) pass. (`bda742c`)
