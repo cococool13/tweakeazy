@@ -146,13 +146,13 @@
 
         <div class="path-shell">
           <div class="path-tabs" role="tablist" aria-label="Toolkit paths">
-            <button class="path-tab is-active" type="button" role="tab" aria-selected="true" data-path="guided">Guided</button>
-            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="verify">Verify</button>
-            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="aggressive">Aggressive</button>
-            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="rollback">Rollback</button>
+            <button class="path-tab is-active" type="button" role="tab" id="path-tab-guided" aria-selected="true" aria-controls="path-panel" tabindex="0" data-path="guided">Guided</button>
+            <button class="path-tab" type="button" role="tab" id="path-tab-verify" aria-selected="false" aria-controls="path-panel" tabindex="-1" data-path="verify">Verify</button>
+            <button class="path-tab" type="button" role="tab" id="path-tab-aggressive" aria-selected="false" aria-controls="path-panel" tabindex="-1" data-path="aggressive">Aggressive</button>
+            <button class="path-tab" type="button" role="tab" id="path-tab-rollback" aria-selected="false" aria-controls="path-panel" tabindex="-1" data-path="rollback">Rollback</button>
           </div>
 
-          <div class="path-content">
+          <div class="path-content" id="path-panel" role="tabpanel" aria-labelledby="path-tab-guided" tabindex="0">
             <div>
               <p class="path-label" id="path-label">Recommended first run</p>
               <h3 id="path-title">Open the launcher from elevated PowerShell.</h3>
@@ -176,6 +176,7 @@
 .\launcher.ps1</code></pre>
             </div>
           </div>
+          <p id="path-live" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
         </div>
       </section>
 
@@ -186,11 +187,11 @@
           <p>Filter by risk tier. Use the paired restore scripts when you are testing one change at a time.</p>
         </div>
 
-        <div class="filter-bar" aria-label="Filter tweaks by risk">
-          <button class="filter-button is-active" type="button" data-filter="all">All</button>
-          <button class="filter-button" type="button" data-filter="safe">Safe</button>
-          <button class="filter-button" type="button" data-filter="advanced">Advanced</button>
-          <button class="filter-button" type="button" data-filter="tradeoff">Trade-off</button>
+        <div class="filter-bar" role="group" aria-label="Filter tweaks by risk">
+          <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">All</button>
+          <button class="filter-button" type="button" data-filter="safe" aria-pressed="false">Safe</button>
+          <button class="filter-button" type="button" data-filter="advanced" aria-pressed="false">Advanced</button>
+          <button class="filter-button" type="button" data-filter="tradeoff" aria-pressed="false">Trade-off</button>
         </div>
 
         <div class="tweak-grid">
