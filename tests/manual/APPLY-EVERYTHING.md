@@ -19,7 +19,7 @@ warning text, phase headings. Below is what must run on Windows.
 | 2 | Phases 1–8 run | Each `Run-Step` line ends with `Done` or a documented `Skipped` reason. |
 | 3 | Phase 9 heading appears | Body output: `Skipped — pass -IncludeSecurityTradeoffs to include`. **NO registry/service writes for WU.** |
 | 4 | Phase 10 heading appears | Same skip pattern. **NO HVCI/VBS/LSA writes.** |
-| 5 | Phases 11–14 run | Customization, Defender exclusions, debloat, temp cleanup all proceed. |
+| 5 | Phases 11–14 run | Customization, Defender exclusions, debloat, temp cleanup all proceed. Phase 13 uses `Get-ToolkitDebloatCatalog` (same list as `debloat.ps1`, including Outlook for Windows and the Xbox App). |
 | 6 | `Get-ToolkitManifest` | `state.steps['phase9-windows-update'].status` = `skipped`. Same for `phase10-security-tradeoffs`. |
 | 7 | `Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity' -ErrorAction SilentlyContinue` | `Enabled` value unchanged (HVCI is NOT disabled by default run). |
 | 8 | Summary | Does **not** print that Windows Update suppression / security trade-offs ran. |
@@ -36,6 +36,14 @@ warning text, phase headings. Below is what must run on Windows.
 | 6 | Reboot. Try to launch R6 Siege or any BattlEye-protected title. | Title launches OR fails — both are valid; the warning told you it might. |
 | 7 | `pwsh -File ...\REVERT-EVERYTHING.ps1` | All tradeoff writes restored to captured before-state. |
 | 8 | Reboot. Verify HVCI/VBS back on via `msinfo32` → Virtualization-based security = Running. | Yes. |
+
+## Verify note — Phase 13 debloat (runtime-pending)
+
+Code-complete, runtime-pending. On a Windows 11 VM:
+
+- Phase 13 does not keep a private package list. It removes every row from `lib/debloat-catalog.ps1`.
+- If `Remove-AppxProvisionedPackage` fails, that Appx name is absent from `state.packages.provisionedRemoved`.
+- `restore-debloat.ps1` reinstalls with the catalog winget id (`9NFFX4SZZ23L` for Cortana, `Microsoft.Teams.Free` for personal Teams), not the Appx name.
 
 ## Idempotency
 

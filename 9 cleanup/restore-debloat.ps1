@@ -5,9 +5,11 @@
 # Tier: Safe (reinstalls Microsoft-published apps)
 #
 # Reads state.packages.removed and state.packages.provisionedRemoved
-# from the manifest and attempts to reinstall each package via winget.
-# Falls back to a Microsoft Store search URL when winget can't find
-# the package id.
+# from the manifest and reinstalls each package via the Appx-to-winget
+# map in lib/debloat-catalog.ps1. Appx names are not winget ids
+# (Microsoft.549981C3F5F10, MicrosoftTeams, and the rest of the
+# catalog). Unmapped names are not passed to winget --id; the script
+# prints a Store search URL instead.
 #
 # Pair with: debloat.ps1
 # Must be run as Administrator (winget Appx scope often needs elevation
@@ -16,6 +18,7 @@
 
 . "$PSScriptRoot\..\lib\toolkit-state.ps1"
 . "$PSScriptRoot\..\lib\ui-helpers.ps1"
+. "$PSScriptRoot\..\lib\debloat-catalog.ps1"
 
 $Host.UI.RawUI.WindowTitle = "Gaming Optimization — Restore Debloat"
 
@@ -90,24 +93,39 @@ $failed = 0
 $current = 0
 foreach ($name in $work) {
     $current++
-    if (-not $wingetAvailable) {
+    $resolved = Resolve-ToolkitDebloatWingetId -PackageName $name
+    if (-not $resolved) {
         $url = "ms-windows-store://search/?query=$([Uri]::EscapeDataString($name))"
         Write-Host "  [$current/$($work.Count)] $name" -ForegroundColor White
+        Write-Host "      No winget id mapped. Not passed to winget --id." -ForegroundColor Yellow
         Write-Host "      Open: $url" -ForegroundColor DarkGray
         $failed++
         continue
     }
 
-    Write-Host "  [$current/$($work.Count)] winget install $name..." -NoNewline -ForegroundColor Gray
+    if ($resolved.Source -eq 'msstore') {
+        $storeUrl = "ms-windows-store://pdp/?ProductId=$($resolved.Id)"
+    } else {
+        $storeUrl = "ms-windows-store://search/?query=$([Uri]::EscapeDataString($resolved.Id))"
+    }
+
+    if (-not $wingetAvailable) {
+        Write-Host "  [$current/$($work.Count)] $name -> $($resolved.Id)" -ForegroundColor White
+        Write-Host "      Open: $storeUrl" -ForegroundColor DarkGray
+        $failed++
+        continue
+    }
+
+    Write-Host "  [$current/$($work.Count)] winget install --id $($resolved.Id) ($name)..." -NoNewline -ForegroundColor Gray
     # Discard stdout/stderr; we make the success/failure decision off
     # $LASTEXITCODE alone. Capture suppressed for cleaner console output.
-    & winget install --exact --id $name --accept-source-agreements --accept-package-agreements --silent 2>&1 | Out-Null
+    & winget install --exact --id $resolved.Id --source $resolved.Source --accept-source-agreements --accept-package-agreements --silent 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
         Write-Host " Installed" -ForegroundColor Green
         $installed++
     } else {
         Write-Host " Failed (exit $LASTEXITCODE)" -ForegroundColor Yellow
-        Write-Host "      Try Microsoft Store: ms-windows-store://search/?query=$([Uri]::EscapeDataString($name))" -ForegroundColor DarkGray
+        Write-Host "      Try Microsoft Store: $storeUrl" -ForegroundColor DarkGray
         $failed++
     }
 }
@@ -123,6 +141,7 @@ Write-Host "  Installed:  $installed" -ForegroundColor Green
 Write-Host "  Not installed: $failed" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  Notes:" -ForegroundColor Gray
+Write-Host "    - winget --id comes from lib/debloat-catalog.ps1, not the Appx name." -ForegroundColor Gray
 Write-Host "    - winget will only reinstall the per-user package. Provisioned" -ForegroundColor Gray
 Write-Host "      (per-image) reinstall requires the original Windows install media" -ForegroundColor Gray
 Write-Host "      or signing into a fresh Microsoft account." -ForegroundColor Gray

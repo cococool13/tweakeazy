@@ -13,10 +13,12 @@
       - $neverRemove safety list is enforced on every removal candidate
         (regression test for f71d130 — the bug where the list was
         declared but never consulted)
-      - Removals are recorded to state.packages.removed via
-        Record-ToolkitPackageRemoval (so restore-debloat.ps1 can read)
-      - Provisioned-package removal is recorded separately so
-        per-image vs per-user reinstall paths can diverge
+      - Removals go through Invoke-ToolkitDebloatRemoval, which
+        records state.packages.removed only after Remove-AppxPackage
+        succeeds (so restore-debloat.ps1 can read)
+      - Provisioned-package removal is recorded only after success,
+        via the same helper, so a failed image-level remove is not
+        written to state.packages.provisionedRemoved
       - Admin self-check present
       - Pair script (9 cleanup/restore-debloat.ps1) exists
       - Microsoft.WindowsStore is in the protected list (you can't
@@ -69,8 +71,8 @@ Describe '9 cleanup/debloat.ps1 — surface contract' {
     }
 
     Context 'Safety list (regression test for f71d130)' {
-        It 'declares $neverRemove' {
-            $script:Content | Should -Match '\$neverRemove\s*=\s*@\('
+        It 'loads $neverRemove from the shared catalog' {
+            $script:Content | Should -Match '\$neverRemove\s*=\s*@\(Get-ToolkitDebloatNeverRemove\)'
         }
 
         It 'enforces $neverRemove inside the foreach (this WAS the bug)' {
@@ -80,25 +82,32 @@ Describe '9 cleanup/debloat.ps1 — surface contract' {
             $script:Content | Should -Match '\$neverRemove\s+-contains\s+\$app\.Name'
         }
 
-        It 'critically-protected app <Name> is in $neverRemove' -ForEach $script:CriticallyProtected {
-            # Locate the $neverRemove array and assert membership.
-            if ($script:Content -match '\$neverRemove\s*=\s*@\(([^)]+)\)') {
-                $listText = $Matches[1]
-                $listText | Should -Match ([regex]::Escape($Name))
-            } else {
-                throw 'Could not locate $neverRemove array literal'
-            }
+        It 'loads the removal list from the shared catalog' {
+            $script:Content | Should -Match '\$appsToRemove\s*=\s*@\(Get-ToolkitDebloatCatalog\)'
+        }
+
+        It 'critically-protected app <Name> is on the shared never-remove list' -ForEach $script:CriticallyProtected {
+            $catalog = Get-Content -Raw -LiteralPath (Get-ToolkitScriptPath 'lib/debloat-catalog.ps1')
+            $catalog | Should -Match ([regex]::Escape($Name))
         }
     }
 
     Context 'Manifest tracking (CLAUDE.md invariant #5)' {
-        It 'calls Record-ToolkitPackageRemoval per user-removed app' {
-            # Without this, restore-debloat.ps1 has nothing to read.
-            $script:Content | Should -Match 'Record-ToolkitPackageRemoval\s+-PackageName\s+\$app\.Name'
+        It 'removes the current-user package through Invoke-ToolkitDebloatRemoval' {
+            $script:Content | Should -Match 'Invoke-ToolkitDebloatRemoval\s+-PackageName\s+\$app\.Name\s+-Scope\s+User'
         }
 
-        It 'calls Record-ToolkitPackageRemoval -Provisioned for image-level' {
-            $script:Content | Should -Match 'Record-ToolkitPackageRemoval\s+-PackageName\s+\$app\.Name\s+-Provisioned'
+        It 'removes the provisioned package through Invoke-ToolkitDebloatRemoval' {
+            $script:Content | Should -Match 'Invoke-ToolkitDebloatRemoval\s+-PackageName\s+\$app\.Name\s+-Scope\s+Provisioned'
+        }
+
+        It 'does not call Remove-AppxProvisionedPackage itself' {
+            $calls = $script:Ast.FindAll({
+                    param($n)
+                    $n -is [System.Management.Automation.Language.CommandAst] -and
+                    $n.GetCommandName() -eq 'Remove-AppxProvisionedPackage'
+                }, $true)
+            @($calls) | Should -BeNullOrEmpty
         }
     }
 
