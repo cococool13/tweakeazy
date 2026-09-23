@@ -628,3 +628,4 @@ function Start-Launcher {
 }
 
 Start-Launcher
+Write-ToolkitScriptComplete -Status 'ok'

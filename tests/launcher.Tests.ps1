@@ -119,4 +119,14 @@ Describe 'launcher.ps1 — surface contract' {
             $body | Should -Match 'exit 1'
         }
     }
+
+    Context 'Script-complete audit line' {
+        It 'logs script-complete after Start-Launcher returns' {
+            # Admin refusal uses exit 1 inside Start-Launcher, so this
+            # line runs only when the menu loop returns (Quit).
+            $idx = $script:Content.LastIndexOf('Start-Launcher')
+            $tail = $script:Content.Substring($idx)
+            $tail | Should -Match 'Write-ToolkitScriptComplete'
+        }
+    }
 }

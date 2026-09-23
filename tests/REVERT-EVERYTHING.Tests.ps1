@@ -117,4 +117,13 @@ Describe 'REVERT-EVERYTHING.ps1 — surface contract' {
             $head | Should -Match '[Rr]eboot'
         }
     }
+
+    Context 'Script-complete audit line' {
+        It 'calls Write-ToolkitScriptComplete before the reboot prompt' {
+            $idx = $script:Content.IndexOf('Write-ToolkitScriptComplete')
+            $idx | Should -BeGreaterThan -1
+            $reboot = $script:Content.IndexOf('Reboot now?')
+            $reboot | Should -BeGreaterThan $idx
+        }
+    }
 }

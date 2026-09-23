@@ -20,11 +20,6 @@
 # Disk impact: NONE — registry / cmdlet only; no installer / file extraction.
 # ============================================================
 
-# CURSOR-AUDIT #6: explicit per-script admin gate. Inline rather than
-# UI-RequireAdmin because the dot-source paths in this folder reach
-# ..\lib\* (intentional sibling sourcing from install-gpu-driver.ps1's
-# scope when invoked via &); going through ui-helpers.ps1 would require
-# fixing those resolutions in a separate change.
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host ""
     Write-Host "  [ERROR] configure-amd.ps1 must be run as Administrator." -ForegroundColor Red
