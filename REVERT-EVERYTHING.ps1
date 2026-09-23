@@ -57,11 +57,22 @@ Run-Step "Re-enabling hibernate" {
     powercfg /hibernate on 2>&1 | Out-Null
 }
 Run-Step "Re-enabling Fast Startup" {
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v "HiberbootEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+    # reg: is the single id shared with configure-power.ps1. pwr: is only
+    # a legacy manifest entry from before that unification; use it when
+    # reg: was never captured. Hardcoded 1 is the no-manifest fallback.
+    if (-not (Restore-ToolkitRegistryValue -Id "reg:HiberbootEnabled")) {
+        if (-not (Restore-ToolkitRegistryValue -Id "pwr:HiberbootEnabled")) {
+            reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v "HiberbootEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+        }
+    }
     reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v "HibernateEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
 }
 Run-Step "Removing power throttling override" {
-    reg delete "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /f 2>&1 | Out-Null
+    if (-not (Restore-ToolkitRegistryValue -Id "reg:PowerThrottlingOff")) {
+        if (-not (Restore-ToolkitRegistryValue -Id "pwr:PowerThrottlingOff")) {
+            reg delete "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /f 2>&1 | Out-Null
+        }
+    }
 }
 
 # ============================================================
@@ -118,7 +129,11 @@ Run-Step "Restoring NTFS last-access updates" {
 Run-Step "MenuShowDelay = 400" { reg add "HKCU\Control Panel\Desktop" /v "MenuShowDelay" /t REG_SZ /d "400" /f 2>&1 | Out-Null }
 Run-Step "MouseHoverTime = 400" { reg add "HKCU\Control Panel\Mouse" /v "MouseHoverTime" /t REG_SZ /d "400" /f 2>&1 | Out-Null }
 Run-Step "Removing startup delay override" { reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" /v "StartupDelayInMSec" /f 2>&1 | Out-Null }
-Run-Step "Re-enabling auto driver searching" { reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" /v "SearchOrderConfig" /t REG_DWORD /d 1 /f 2>&1 | Out-Null }
+Run-Step "Re-enabling auto driver searching" {
+    if (-not (Restore-ToolkitRegistryValue -Id "reg:DriverSearchOrderConfig")) {
+        reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" /v "SearchOrderConfig" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+    }
+}
 Run-Step "Removing fullscreen optimization overrides" {
     reg delete "HKCU\System\GameConfigStore" /v "GameDVR_FSEBehaviorMode" /f 2>&1 | Out-Null
     reg delete "HKCU\System\GameConfigStore" /v "GameDVR_HonorUserFSEBehaviorMode" /f 2>&1 | Out-Null
@@ -149,7 +164,9 @@ Run-Step "Restoring visual effects defaults" {
     reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" /v "VisualFXSetting" /t REG_DWORD /d 0 /f 2>&1 | Out-Null
     reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v "MinAnimate" /t REG_SZ /d "1" /f 2>&1 | Out-Null
     reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarAnimations" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d 2 /f 2>&1 | Out-Null
+    if (-not (Restore-ToolkitRegistryValue -Id "reg:Win32PrioritySeparation")) {
+        reg add "HKLM\SYSTEM\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d 2 /f 2>&1 | Out-Null
+    }
 }
 Run-Step "Restoring Explorer defaults" {
     reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "LaunchTo" /t REG_DWORD /d 2 /f 2>&1 | Out-Null
@@ -173,7 +190,9 @@ Run-Step "Restoring privacy defaults" {
     reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Privacy" /v "TailoredExperiencesWithDiagnosticDataEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
     reg add "HKCU\Software\Microsoft\InputPersonalization" /v "RestrictImplicitInkCollection" /t REG_DWORD /d 0 /f 2>&1 | Out-Null
     reg add "HKCU\Software\Microsoft\InputPersonalization" /v "RestrictImplicitTextCollection" /t REG_DWORD /d 0 /f 2>&1 | Out-Null
-    reg add "HKLM\Software\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+    if (-not (Restore-ToolkitRegistryValue -Id "reg:AllowTelemetry")) {
+        reg add "HKLM\Software\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+    }
     reg delete "HKCU\SOFTWARE\Microsoft\Siuf\Rules" /v "NumberOfSIUFInPeriod" /f 2>&1 | Out-Null
     reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "PublishUserActivities" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
     reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\SearchSettings" /v "IsDynamicSearchBoxEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
@@ -422,6 +441,7 @@ UI-Summary -DoneMessage "Revert Everything complete" -Details @(
     "Follow-up:  Reinstall removed apps from Microsoft Store or winget if needed.",
     "Follow-up:  Any external tools run after Apply Everything still need manual cleanup."
 ) -RevertHint "If something still looks off after reboot, run Verify and compare against GUIDE.md."
+UI-Note -Message "Driver search, Fast Startup, power throttling, priority separation, and AllowTelemetry restore from the manifest when those ids were captured." -Color $script:UI_Info
 UI-Note -Message "Some broad registry areas still use default-based rollback." -Color $script:UI_Warning
 UI-Note -Message "Reboot is required for all rollback changes to take effect." -Color $script:UI_Warning
 

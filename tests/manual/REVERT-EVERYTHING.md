@@ -20,6 +20,37 @@ fallback pattern). Below is what must run on Windows.
 | 3 | `Get-ToolkitManifest` after | `state.registry` entries unchanged (manifest is the audit trail, revert reads it but doesn't clear it). |
 | 4 | Spot-check a key that was set by APPLY: `Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' -Name PowerThrottlingOff -ErrorAction SilentlyContinue` | Value matches the captured `before` from the manifest (typically null/absent for these toolkit-only keys). |
 
+## Captured HKLM ids (manifest before hardcoded default)
+
+These five values are written with `Set-ToolkitRegistryValue` and must
+come back from `state.registry[<id>].before`. The hardcoded default
+runs only when that id is absent. `HiberbootEnabled` and
+`PowerThrottlingOff` use one id (`reg:`). `configure-power.ps1` writes
+that same id. A legacy `pwr:` entry is read only when the `reg:` id
+was never captured.
+
+Code-complete, runtime-pending: confirm on a Windows 11 VM.
+
+| Id | Live value to read after revert | No-manifest fallback |
+| --- | --- | --- |
+| `reg:DriverSearchOrderConfig` | `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching` `SearchOrderConfig` | DWORD 1 |
+| `reg:HiberbootEnabled` | `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power` `HiberbootEnabled` | DWORD 1 |
+| `reg:PowerThrottlingOff` | `HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling` `PowerThrottlingOff` | value removed |
+| `reg:Win32PrioritySeparation` | `HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl` `Win32PrioritySeparation` | DWORD 2 |
+| `reg:AllowTelemetry` | `HKLM:\Software\Policies\Microsoft\Windows\DataCollection` `AllowTelemetry` | DWORD 1 |
+
+| # | Action | Expected |
+| --- | --- | --- |
+| 1 | After APPLY, note each id's `before.value` / `before.valueExists` in the manifest. | Five `reg:` entries exist. No new `pwr:HiberbootEnabled` or `pwr:PowerThrottlingOff` from this run. |
+| 2 | Run `REVERT-EVERYTHING.ps1`. | Each live value matches that `before` (removed when `valueExists` is false). |
+| 3 | Wipe the manifest and run revert again on a snapshot that still has the tweaked values. | Fallbacks in the table above. |
+| 4 | On a snapshot where only `configure-power.ps1` ran (legacy `pwr:` ids, no `reg:` ids), run `2 power plan\revert-power.ps1`. | Live Hiberboot and PowerThrottling match the `pwr:` `before`, not a forced 1 / delete. |
+
+Manifests created before this change can contain both ids. Revert uses
+the `reg:` before. If power-plan ran first, that `reg:` before may
+already be the tweaked value; re-apply does not refresh an existing
+before. HKCU `Reg-Add` writes stay on the v1.1 list.
+
 ## Nagle revert (CURSOR-AUDIT #5)
 
 Manifest-prefer-then-blind-fallback pattern. Critical to test both
