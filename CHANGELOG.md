@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased] — continuous-improvement loop (in progress)
 
+### Fixed
+- `.github/workflows/ci.yml` and `tools/Invoke-ToolkitGate.ps1` described `windows-latest` as running `WindowsOnly` tests. No test uses that tag, `tests/integration/` does not exist, and both jobs use `pwsh` (PowerShell 7). Comments in the affected test headers now say the same. The failure artifact upload of `.psscriptanalyzer-baseline.json` is removed; the gate does not rewrite that 2026-05-24 snapshot.
+
 Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clean a hard precondition for every script. Baseline at session start: 1537 PSScriptAnalyzer findings (3 Error, 1415 Warning, 119 Info).
 
 ### Removed

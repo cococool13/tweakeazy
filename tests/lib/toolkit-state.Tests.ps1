@@ -12,9 +12,7 @@
       - In-memory helpers (Set-ToolkitMapValue) have explicit
         suppression so future analyzer runs don't re-flag them.
 
-    Runtime tests (actual registry / service writes) are tagged
-    'WindowsOnly' and live in tests/integration/. This file is
-    static-only and safe on macOS / Linux CI runners.
+    This file is static-only and runs on macOS / Linux CI runners.
 
 .NOTES
     Test rig: tests/_common.ps1 provides shared helpers.

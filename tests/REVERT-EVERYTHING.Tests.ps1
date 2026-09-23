@@ -17,8 +17,8 @@
         (CURSOR-AUDIT #5)
       - Help text warns about the post-revert reboot requirement
 
-    Runtime tests live under tests/integration/ + tests/manual/
-    REVERT-EVERYTHING.md for what can't be Pester'd from macOS.
+    What these AST tests cannot prove is listed in
+    tests/manual/REVERT-EVERYTHING.md.
 
 .NOTES
     # CROSS-PLATFORM-NOTE

@@ -21,9 +21,8 @@
       - All Set-TrackedRegistry / Set-TrackedService wrappers used
         downstream actually exist
 
-    Runtime tests (actual registry writes) are Windows-only and live
-    under tests/integration/. tests/manual/APPLY-EVERYTHING.md is the
-    human-runner checklist for what can't be Pester'd statically.
+    Registry writes are outside this file. The human checklist is
+    tests/manual/APPLY-EVERYTHING.md.
 
 .NOTES
     # CROSS-PLATFORM-NOTE
