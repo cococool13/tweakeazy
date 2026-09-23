@@ -277,6 +277,17 @@ Check "Windows Update service disabled" {
     if (-not $service) { return "SKIP" }
     $service.StartType -eq "Disabled"
 } "service:wuauserv"
+# Phase 14 stops wuauserv to clear SoftwareDistribution\Download, then starts
+# it again unless Phase 9 recorded service:wuauserv as applied (reason
+# windows-update) and the live start type is Disabled. A default Apply All
+# skips Phase 9, so a stopped wuauserv is not a toolkit disable.
+$phase9Skipped = (Get-ToolkitRecordedStatus -Key "phase9-windows-update") -eq "skipped"
+$phase9DisabledWu = (Get-ToolkitRecordedStatus -Key "service:wuauserv") -eq "applied"
+if ($phase9Skipped -and -not $phase9DisabledWu) {
+    UI-Note -Message "Phase 9 did not disable Windows Update. Phase 14 restarts wuauserv after the download-cache cleanup."
+} elseif ($phase9DisabledWu) {
+    UI-Note -Message "Phase 9 disabled wuauserv. Phase 14 leaves that service stopped after cache cleanup." -Color $script:UI_Warning
+}
 
 Check "VBS disabled" {
     $vbs = Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
