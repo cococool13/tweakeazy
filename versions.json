@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-03-19",
+  "updatedAt": "2026-09-23",
 
   "gpu": {
     "nvidia": {
@@ -36,6 +36,11 @@
       "version": "23.01",
       "url": "https://www.7-zip.org/a/7z2301-x64.exe",
       "sha256": "c37b3078d4a0643a6a58bf9ff91a4e1e6bab61a8cd0e1e0034a42e7bb2f4a5a2"
+    },
+    "winutil": {
+      "version": "26.04.21",
+      "url": "https://github.com/ChrisTitusTech/winutil/releases/download/26.04.21/winutil.ps1",
+      "sha256": "4c2595118edd3355065c1f449cd7e0092614dfc2552e8ac8e4ec4231a6d9a719"
     },
 
     "shutup10": {

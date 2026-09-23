@@ -11,6 +11,9 @@
 ::   - Configure Windows Update policies
 ::
 :: Source: https://github.com/ChrisTitusTech/winutil
+:: Pin:    versions.json tools.winutil (version, url, sha256)
+:: Read:   Get-ToolManifest, same path as DDU (remote, cache, bundled).
+::         A missing pin or SHA-256 mismatch aborts. Nothing runs.
 :: ============================================================
 
 :: Load UI helpers (ANSI colors)
@@ -19,9 +22,54 @@ call "%~dp0..\lib\ui-helpers.bat"
 call :ui_header "Chris Titus Tech Windows Utility (WinUtil)"
 call :ui_admin_check
 
-set "WINUTIL_VERSION=26.04.21"
-set "WINUTIL_URL=https://github.com/ChrisTitusTech/winutil/releases/download/%WINUTIL_VERSION%/winutil.ps1"
-set "WINUTIL_SHA256=4c2595118edd3355065c1f449cd7e0092614dfc2552e8ac8e4ec4231a6d9a719"
+:: Version, URL, and SHA-256 live in versions.json (tools.winutil).
+:: Get-ToolManifest is the helper DDU uses: GitHub, then cache, then bundled.
+set "WINUTIL_MANIFEST_LIB=%~dp0..\lib\version-manifest.ps1"
+set "WINUTIL_PIN=%TEMP%\winutil-pin.txt"
+set "WINUTIL_VERSION="
+set "WINUTIL_URL="
+set "WINUTIL_SHA256="
+del "%WINUTIL_PIN%" 2>nul
+
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; . '%WINUTIL_MANIFEST_LIB%'; $t = Get-ToolManifest -Name 'winutil'; if (-not $t.version -or -not $t.url -or -not $t.sha256) { throw 'tools.winutil is missing version, url, or sha256' }; Set-Content -LiteralPath '%WINUTIL_PIN%' -Value @('version=' + $t.version, 'url=' + $t.url, 'sha256=' + $t.sha256) -Encoding Ascii"
+if errorlevel 1 (
+    echo   %C_ERR%[ERROR] Could not read tools.winutil from versions.json.%C_R%
+    echo   %C_DIM%Expected version, url, and sha256 via Get-ToolManifest.%C_R%
+    del "%WINUTIL_PIN%" 2>nul
+    pause
+    exit /b 1
+)
+
+if not exist "%WINUTIL_PIN%" (
+    echo   %C_ERR%[ERROR] versions.json did not return a WinUtil pin.%C_R%
+    pause
+    exit /b 1
+)
+
+for /f "usebackq tokens=1,* delims==" %%a in ("%WINUTIL_PIN%") do (
+    if /I "%%a"=="version" set "WINUTIL_VERSION=%%b"
+    if /I "%%a"=="url" set "WINUTIL_URL=%%b"
+    if /I "%%a"=="sha256" set "WINUTIL_SHA256=%%b"
+)
+del "%WINUTIL_PIN%" 2>nul
+
+if not defined WINUTIL_VERSION (
+    echo   %C_ERR%[ERROR] tools.winutil.version is missing from versions.json.%C_R%
+    pause
+    exit /b 1
+)
+if not defined WINUTIL_URL (
+    echo   %C_ERR%[ERROR] tools.winutil.url is missing from versions.json.%C_R%
+    pause
+    exit /b 1
+)
+if not defined WINUTIL_SHA256 (
+    echo   %C_ERR%[ERROR] tools.winutil.sha256 is missing from versions.json.%C_R%
+    pause
+    exit /b 1
+)
+
+call :ui_step_ok "Pinned WinUtil %WINUTIL_VERSION% from versions.json"
 
 echo   This will download and run WinUtil from GitHub release %WINUTIL_VERSION%.
 echo   %C_DIM%Nothing is permanently installed — it runs once and exits.%C_R%
@@ -37,6 +85,7 @@ echo   %C_DIM%Pinned URL: %WINUTIL_URL%%C_R%
 echo.
 echo   %C_WARN%SECURITY NOTE:%C_R%
 echo   %C_DIM%This downloads PowerShell code from GitHub and runs it.%C_R%
+echo   %C_DIM%Pin source: versions.json tools.winutil%C_R%
 echo   %C_DIM%The downloaded file must match this SHA-256 before it runs:%C_R%
 echo   %C_DIM%%WINUTIL_SHA256%%C_R%
 echo.
@@ -66,7 +115,7 @@ echo   %C_HEAD%Actual SHA-256:  %C_R% %WINUTIL_HASH%
 echo.
 if /I not "%WINUTIL_HASH%"=="%WINUTIL_SHA256%" (
     echo   %C_ERR%[ERROR] SHA-256 mismatch. WinUtil will not run.%C_R%
-    echo   %C_DIM%Delete the file and update this wrapper only after auditing the new release.%C_R%
+    echo   %C_DIM%Delete the file and update versions.json only after auditing the new release.%C_R%
     del "%WINUTIL_FILE%" 2>nul
     pause
     exit /b 1
