@@ -77,8 +77,12 @@ function Apply-IntelSystemSettings {
 
     $graphicsDriversPath = "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
 
-    # Hardware Accelerated GPU Scheduling (HAGS)
-    Set-ToolkitRegistryValue -Id "intel:HwSchMode" `
+    # Hardware Accelerated GPU Scheduling (HAGS).
+    # One registry value. Capture-once is per manifest id, so a vendor
+    # id (intel:HwSchMode) stores the post-apply value 2 as the original
+    # when Apply or enable-hags already wrote it. Track only reg:HwSchMode.
+    # Rollback is REVERT-EVERYTHING / the hags pair, not revert-intel.ps1.
+    Set-ToolkitRegistryValue -Id "reg:HwSchMode" `
         -Path $graphicsDriversPath -Name "HwSchMode" `
         -Value 2 -Type "DWord" -Tier "Advanced" -Step $stepName
 }
