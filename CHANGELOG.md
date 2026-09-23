@@ -23,6 +23,7 @@ Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clea
 - Defense-in-depth enforcement of `$neverRemove` safety list in `9 cleanup/debloat.ps1`. Previously declared but never used (latent safety gap exposed by `PSUseDeclaredVarsMoreThanAssignments`). (`f71d130`)
 
 ### Fixed
+- `REVERT-EVERYTHING.ps1` restores the four Apply writes that previously stayed put after Revert All: `UserPreferencesMask` (`9E1E078012000000`, Let Windows choose), `FontSmoothing` (`2`), `AutoGameModeEnabled` (`1`), and the per-event sound-scheme `.Current` values (copied from each event's Windows Default sibling). Code-complete, runtime-pending (`MANUAL-TEST-CHECKLIST.md` §12.5).
 - PowerShell 5.1 load-path: drop `ConvertFrom-Json -Depth` (PS 6.2+) in `Get-ToolkitState` / `Initialize-ToolkitState` / `Get-ToolkitManifest`; replace 3-arg `Join-Path` in `tools/Start-SandboxSession.ps1` with two 2-arg calls. AST invariant in `tests/invariants/ps51-load-path.Tests.ps1`.
 - 3 `PSScriptAnalyzer` Error-severity findings — replaced `Test-Connection -ComputerName "8.8.8.8"` with `[System.Net.NetworkInformation.Ping]` in `lib/download-helpers.ps1`, `lib/ui-helpers.ps1`, `0 prerequisites/install-runtimes.ps1`. Sidesteps a false-positive rule AND drops Cim warmup latency from ~200–500ms to ~5–50ms. (`4e993a9`)
 - 26 .ps1 files reformatted via `Invoke-Formatter` — clears 337 whitespace/indent warnings in one verified-balanced (216/216 line) pass. (`bda742c`)

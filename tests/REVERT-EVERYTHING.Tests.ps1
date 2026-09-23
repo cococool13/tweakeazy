@@ -117,4 +117,38 @@ Describe 'REVERT-EVERYTHING.ps1 — surface contract' {
             $head | Should -Match '[Rr]eboot'
         }
     }
+
+    Context 'Visual effects and sound scheme are restored' {
+        It 'writes the Let Windows choose UserPreferencesMask' {
+            $script:Content | Should -Match 'UserPreferencesMask" /t REG_BINARY /d "9E1E078012000000"'
+        }
+
+        It 'writes FontSmoothing 2' {
+            $script:Content | Should -Match 'FontSmoothing" /t REG_SZ /d "2"'
+        }
+
+        It 'writes AutoGameModeEnabled 1' {
+            $script:Content | Should -Match 'AutoGameModeEnabled" /t REG_DWORD /d 1'
+        }
+
+        It 'copies each Apply-cleared sound event from .Default onto .Current' {
+            $events = @(
+                'DeviceConnect',
+                'DeviceDisconnect',
+                'DeviceFail',
+                'MailBeep',
+                'Notification.Default',
+                'SystemAsterisk',
+                'SystemExclamation',
+                'SystemNotification',
+                'WindowsUAC'
+            )
+            foreach ($soundEvent in $events) {
+                $script:Content | Should -Match ([regex]::Escape('"' + $soundEvent + '"'))
+            }
+            $script:Content | Should -Match 'Apps\\\.Default\\\$soundEvent\\\.Default'
+            $script:Content | Should -Match 'Apps\\\.Default\\\$soundEvent\\\.Current'
+            $script:Content | Should -Match 'GetValue\(""\)'
+        }
+    }
 }

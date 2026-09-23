@@ -61,6 +61,21 @@ having APPLY'd.
 | 2 | Run REVERT-EVERYTHING.ps1 | Should NOT throw. Logs many `Skipped (no manifest entry)` and applies the defaults-fallback path. |
 | 3 | System state | Unchanged from pre-REVERT (defaults fallback shouldn't push values for keys that weren't toolkit-set). |
 
+## Visual effects and sound scheme (checklist 12.5)
+
+Apply writes `UserPreferencesMask`, `FontSmoothing`, `AutoGameModeEnabled`, and empty per-event `.Current` values. Revert writes the stock defaults for the first three and copies each Windows Default scheme sibling back onto `.Current`.
+
+Code-complete, runtime-pending. On a Windows 11 VM after Apply, then Revert:
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | `reg query "HKCU\Control Panel\Desktop" /v UserPreferencesMask` | `REG_BINARY` `9E1E078012000000`. Not `9012038012000000`. |
+| 2 | `reg query "HKCU\Control Panel\Desktop" /v FontSmoothing` | `REG_SZ` `2`. |
+| 3 | `reg query "HKCU\Software\Microsoft\GameBar" /v AutoGameModeEnabled` | `REG_DWORD` `0x1`. |
+| 4 | `reg query "HKCU\AppEvents\Schemes\Apps\.Default\DeviceConnect\.Current"` | Default value equals `DeviceConnect\.Default` (typically a wav path), not `""`. Repeat for `.Default`, `DeviceDisconnect`, `DeviceFail`, `MailBeep`, `Notification.Default`, `SystemAsterisk`, `SystemExclamation`, `SystemNotification`, `WindowsUAC`. |
+
+These four are stock-default writes, same contract as the other untracked Phase 4 `reg add` fallbacks. They do not read a manifest `before` value.
+
 ## Failure modes to flag
 
 - If `Restore-ToolkitRegistryValue` writes a wrong value → check the manifest `before` capture in `lib/toolkit-state.ps1` `Get-ToolkitRegistryState`.
