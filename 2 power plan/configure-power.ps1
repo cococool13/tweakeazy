@@ -305,6 +305,10 @@ Run-Step "Power throttling: disabled" {
 
 Add-ToolkitStepResult -Key $stepName -Tier "Safe" -Status "applied" `
     -Reason "Ultimate Performance active, $succeeded settings applied"
+# Same fact under the key verify-tweaks.ps1 grades. $stepName stays
+# "power-plan" so the launcher category prefix still matches.
+Add-ToolkitStepResult -Key "power:plan" -Tier "Safe" -Status "applied" `
+    -Reason "Ultimate Performance active, $succeeded settings applied"
 
 # Before/after metric: the post-config active plan GUID. Compare to
 # the 'power-plan-before' line emitted at script start.
