@@ -1,22 +1,23 @@
-# Win11 Gaming Toolkit — response headers, ported from the Netlify config.
-#
-# The original netlify.toml is not retrievable through the API (it returns
-# metadata, not the body), so these were reconstructed from the headers the
-# live Netlify site actually served: /assets/* immutable, everything else on
-# the platform default. Verified by reading responses for .css, .js, .png and
-# .svg before writing this.
+# Win11 Gaming Toolkit — Cloudflare Pages response headers.
 #
 # Rules must not overlap. Cloudflare applies every match and concatenates
 # them, so two rules setting Cache-Control on one path produce a header with
 # two max-ages.
+#
+# /assets/* used to be public, max-age=31536000, immutable (ported from the
+# old Netlify responses). Those names are not content-hashed (favicon.svg,
+# hero-workstation.png). A missing file is then a 404 that browsers keep for
+# a year. Short max-age, no immutable, until names are hashed.
 
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=3600
 
-# Added, not ported: Netlify served no security headers here beyond its
-# automatic HSTS. These cost nothing on a static page and match what the other
-# Spiral sites send.
+# Security headers. Netlify served none of these beyond automatic HSTS.
+# Permissions-Policy matches the policy the live site already sends.
+# Full Content-Security-Policy is a follow-up after fonts are self-hosted
+# and the page is recovered; do not add it here.
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
