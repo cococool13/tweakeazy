@@ -18,7 +18,6 @@ BeforeDiscovery {
     $script:ExpectedPublic = @(
         @{ Name = 'UI-ResetCounters' }
         @{ Name = 'UI-RequireAdmin' }
-        @{ Name = 'UI-RequireInternet' }
         @{ Name = 'UI-Header' }
         @{ Name = 'UI-Section' }
         @{ Name = 'UI-Note' }
@@ -104,14 +103,9 @@ Describe 'lib/ui-helpers.ps1 — surface contract' {
         }
     }
 
-    Context 'Internet check uses .NET Ping (no Test-Connection -ComputerName)' {
-        It 'UI-RequireInternet does not use Test-Connection -ComputerName' {
-            # Regression test for the PSAvoidUsingComputerNameHardcoded
-            # Error-fix at commit 4e993a9.
-            $fn = $script:Functions | Where-Object Name -EQ 'UI-RequireInternet'
-            $body = $fn.Body.Extent.Text
-            $body | Should -Not -Match 'Test-Connection.*-ComputerName'
-            $body | Should -Match '\[System\.Net\.NetworkInformation\.Ping\]'
+    Context 'Dead helpers stay removed' {
+        It 'does not define UI-RequireInternet (Ensure-Internet is the production check)' {
+            $script:FunctionNames | Should -Not -Contain 'UI-RequireInternet'
         }
     }
 }

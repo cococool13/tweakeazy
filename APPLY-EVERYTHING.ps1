@@ -34,7 +34,9 @@
 #       vendors warn this may change.
 #   See per-script "Anti-cheat impact:" lines for component details.
 # Reboot required: SEE-SCRIPT — heuristic-default; refine in follow-up.
-# Disk impact: NONE — registry / cmdlet only; no installer / file extraction.
+# Disk impact: HIGH — Phase 13 removes Appx packages; Phase 14 deletes
+#   user/Windows temp, the Windows Update download cache, and the D3D
+#   shader cache. Earlier phases are registry / cmdlet only.
 #
 # Undo: REVERT-EVERYTHING.ps1
 # ============================================================
@@ -717,6 +719,7 @@ if ($IncludeSecurityTradeoffs) {
     UI-Note -Message "This run included Windows Update suppression and security trade-off tweaks." -Color $script:UI_Warning
 }
 UI-Note -Message "Reboot is required before judging results." -Color $script:UI_Warning
+Write-ToolkitScriptComplete -Status 'ok'
 
 if (UI-AskYesNo -Prompt "Reboot now?") {
     UI-Note -Message "Rebooting in 5 seconds..." -Color $script:UI_Warning

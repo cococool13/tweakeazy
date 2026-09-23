@@ -424,6 +424,7 @@ UI-Summary -DoneMessage "Revert Everything complete" -Details @(
 ) -RevertHint "If something still looks off after reboot, run Verify and compare against GUIDE.md."
 UI-Note -Message "Some broad registry areas still use default-based rollback." -Color $script:UI_Warning
 UI-Note -Message "Reboot is required for all rollback changes to take effect." -Color $script:UI_Warning
+Write-ToolkitScriptComplete -Status 'ok'
 
 if (UI-AskYesNo -Prompt "Reboot now?") {
     UI-Note -Message "Rebooting in 5 seconds..." -Color $script:UI_Warning

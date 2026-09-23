@@ -260,10 +260,10 @@ loaded the helpers into scope; standalone invocation produced silent
 no-ops or "command not found" later.
 
 Resolution: all 6 scripts now dot-source `..\..\lib\*` correctly.
-Inline admin-check workaround comments from CURSOR-AUDIT #6 are
-preserved for clarity but the dot-source now actually loads
-`lib/ui-helpers.ps1` if a future cleanup wants to switch from inline
-`IsInRole` to the canonical `UI-RequireAdmin`.
+The three `configure-*.ps1` files keep an inline `IsInRole` admin
+gate because they do not dot-source `lib/ui-helpers.ps1`. The
+CURSOR-AUDIT #6 comments that claimed `..\lib\*` was still broken
+were removed; that path claim was stale after the fix.
 
 #### Phase 5 / Phase 11 Reg-Add cosmetic writes (CURSOR-AUDIT #13 remainder)
 

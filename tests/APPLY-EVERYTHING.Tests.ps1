@@ -190,12 +190,30 @@ Describe 'APPLY-EVERYTHING.ps1 — surface contract' {
             $head | Should -Match 'BattlEye'
             $head | Should -Match 'EAC'
         }
+
+        It 'header disk impact covers Phase 13 Appx removal and Phase 14 cache deletes' {
+            # Phases 13-14 delete packages and caches. NONE would be a lie.
+            $head = ($script:Content -split "`n" | Select-Object -First 50) -join "`n"
+            $head | Should -Match 'Disk impact:\s*HIGH'
+            $head | Should -Match 'Phase 13'
+            $head | Should -Match 'Phase 14'
+            $head | Should -Not -Match 'Disk impact:\s*NONE'
+        }
     }
 
     Context 'Admin self-check (CLAUDE.md invariant #6)' {
         It 'calls UI-RequireAdmin near the top' {
             $head = ($script:Content -split "`n" | Select-Object -First 80) -join "`n"
             $head | Should -Match 'UI-RequireAdmin'
+        }
+    }
+
+    Context 'Script-complete audit line' {
+        It 'calls Write-ToolkitScriptComplete before the reboot prompt' {
+            $idx = $script:Content.IndexOf('Write-ToolkitScriptComplete')
+            $idx | Should -BeGreaterThan -1
+            $reboot = $script:Content.IndexOf('Reboot now?')
+            $reboot | Should -BeGreaterThan $idx
         }
     }
 }
