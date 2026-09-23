@@ -26,6 +26,12 @@ $launchLog = Join-Path $stageRoot "DDU-Auto.log"
 # $sevenZipInstaller = Join-Path $env:TEMP "7zip-installer.exe"
 $dduInstaller = Join-Path $env:TEMP "DDU-setup.exe"
 $runOnceName = "*!GamingOpt-DDU"
+# Pre-DDU SearchOrderConfig snapshot. Held is true only after
+# Set-DduDriverSearchPolicy actually runs; Handoff means the Safe Mode
+# resume script owns the restore across reboot.
+$script:DriverSearchPrior = $null
+$script:DriverSearchHeld = $false
+$script:DriverSearchHandoff = $false
 
 # Fetch DDU version info from manifest (GitHub → cache → bundled)
 $dduManifest = Get-ToolManifest -Name "ddu"
@@ -120,11 +126,14 @@ function New-DduResumeScript {
     param(
         [string]$DduExe,
         [string[]]$DduArguments,
-        [switch]$ChainDriverInstall
+        [switch]$ChainDriverInstall,
+        [object]$DriverSearchPrior
     )
 
     $quotedArgs = @($DduArguments | ForEach-Object { "'{0}'" -f $_.Replace("'", "''") }) -join ", "
     $argumentsArray = if ([string]::IsNullOrWhiteSpace($quotedArgs)) { "@()" } else { "@($quotedArgs)" }
+    $driverSearchLib = Join-Path $PSScriptRoot 'lib\download-helpers.ps1'
+    $driverSearchRestoreBlock = Get-DduDriverSearchRestoreBlock -Prior $DriverSearchPrior -LibPath $driverSearchLib
 
     # Resolve the GPU driver install script path (relative to repo root)
     $gpuInstallScript = Join-Path $PSScriptRoot "6 gpu\install-gpu-driver.ps1"
@@ -164,14 +173,19 @@ try {
     if (-not (Test-Path '$DduExe')) {
         Write-Host '[ABORT] Staged DDU executable is missing.' -ForegroundColor Red
         Write-Host 'Use the Leave-Safe-Mode helper if you want to reboot immediately.' -ForegroundColor Yellow
+$driverSearchRestoreBlock
         exit 1
     }
 $driverInstallBlock
     `$dduArguments = $argumentsArray
-    if (`$dduArguments.Count -gt 0) {
-        Start-Process -FilePath '$DduExe' -ArgumentList `$dduArguments -Wait
-    } else {
-        Start-Process -FilePath '$DduExe' -Wait
+    try {
+        if (`$dduArguments.Count -gt 0) {
+            Start-Process -FilePath '$DduExe' -ArgumentList `$dduArguments -Wait
+        } else {
+            Start-Process -FilePath '$DduExe' -Wait
+        }
+    } finally {
+$driverSearchRestoreBlock
     }
 } finally {
     Stop-Transcript | Out-Null
@@ -195,11 +209,22 @@ function Remove-DduRunOnce {
     }
 }
 
-function Set-DriverSearchPolicy {
-    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
-    param()
-    if ($PSCmdlet.ShouldProcess('HKLM:\...\DriverSearching\SearchOrderConfig', 'set DWORD = 0 (disable WU driver search)')) {
-        reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\DriverSearching" /v "SearchOrderConfig" /t REG_DWORD /d 0 /f 2>&1 | Out-Null
+function Restore-HeldDriverSearchPolicy {
+    if (-not $script:DriverSearchHeld -or $null -eq $script:DriverSearchPrior) {
+        return
+    }
+    $prior = $script:DriverSearchPrior
+    # Clear first so a failed restore cannot recurse through the catch path.
+    $script:DriverSearchHeld = $false
+    try {
+        if ($prior.valueExists) {
+            $kind = if ($prior.kind) { [string]$prior.kind } else { 'DWord' }
+            Restore-DduDriverSearchPolicy -ValueExisted:$true -PreviousValue $prior.value -PreviousKind $kind
+        } else {
+            Restore-DduDriverSearchPolicy -ValueExisted:$false
+        }
+    } catch {
+        Write-Host "[WARN] Driver search policy was not restored: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }
 
@@ -208,7 +233,12 @@ try {
 
     Write-Info "Preparing DDU payload..."
     $dduExe = Stage-DduPayload
-    Set-DriverSearchPolicy
+    # Manifest must exist before the tracked write so `before` is the
+    # pre-DDU value. Same id as Apply Everything: an existing snapshot
+    # is left alone.
+    Initialize-ToolkitState | Out-Null
+    $script:DriverSearchPrior = Set-DduDriverSearchPolicy
+    $script:DriverSearchHeld = $null -ne $script:DriverSearchPrior
 
     Write-Host ""
     Write-Host "DDU staged at:" -ForegroundColor Green
@@ -224,7 +254,7 @@ try {
             @()
         }
 
-        New-DduResumeScript -DduExe $dduExe -DduArguments $dduArguments -ChainDriverInstall:$Automatic
+        New-DduResumeScript -DduExe $dduExe -DduArguments $dduArguments -ChainDriverInstall:$Automatic -DriverSearchPrior $script:DriverSearchPrior
         Register-DduRunOnce
 
         Write-Info "Scheduling next boot into Safe Mode..."
@@ -233,6 +263,8 @@ try {
             Remove-DduRunOnce
             throw "Failed to schedule Safe Mode boot"
         }
+        # Resume script restores SearchOrderConfig after DDU exits.
+        $script:DriverSearchHandoff = $true
 
         if ($Automatic) {
             Write-Host "The next admin login in Safe Mode will auto-run DDU with the aggressive clean-and-restart arguments." -ForegroundColor Yellow
@@ -240,6 +272,7 @@ try {
             Write-Host "The next admin login in Safe Mode will auto-launch DDU for a manual run." -ForegroundColor Yellow
         }
         Write-Host "Safe boot is cleared at handoff time to prevent boot loops if DDU fails." -ForegroundColor Yellow
+        Write-Host "Driver search stays off only until DDU exits; the resume script restores the previous SearchOrderConfig." -ForegroundColor Yellow
         Write-Host "Rebooting in 5 seconds..." -ForegroundColor Yellow
         Start-Sleep -Seconds 5
         shutdown -r -t 0
@@ -248,9 +281,17 @@ try {
 
     Write-Host "Launching DDU in the current session." -ForegroundColor Yellow
     Write-Host "Use DduAuto.ps1 for the unattended Safe Mode handoff." -ForegroundColor Yellow
-    Start-Process -FilePath $dduExe
+    Write-Host "Driver search is restored when DDU exits." -ForegroundColor Yellow
+    try {
+        Start-Process -FilePath $dduExe -Wait
+    } finally {
+        Restore-HeldDriverSearchPolicy
+    }
     Pause
 } catch {
+    if (-not $script:DriverSearchHandoff) {
+        Restore-HeldDriverSearchPolicy
+    }
     Write-Host "[ABORT] $($_.Exception.Message)" -ForegroundColor Red
     Pause
     exit 1

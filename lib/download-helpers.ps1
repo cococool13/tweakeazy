@@ -18,6 +18,11 @@ $script:GamingOptDataHome = if ($env:ProgramData) {
 }
 $script:GamingOptRoot = Join-Path $script:GamingOptDataHome 'GamingOpt'
 
+# Set-DduDriverSearchPolicy / Restore-DduDriverSearchPolicy write
+# SearchOrderConfig through Set-ToolkitRegistryValue. toolkit-state.ps1
+# does not dot-source this file.
+. "$PSScriptRoot\toolkit-state.ps1"
+
 function Write-Info {
     param([string]$Message)
     Write-Host $Message -ForegroundColor Cyan
@@ -126,6 +131,108 @@ function Ensure-7Zip {
     return $sevenZipExe
 }
 
+# Temporary DDU hold for HKLM\...\DriverSearching\SearchOrderConfig.
+# Uses the same manifest id as APPLY-EVERYTHING (reg:DriverSearchOrderConfig).
+# Set-ToolkitRegistryValue records `before` only on first insert, so a DDU
+# run cannot replace an existing snapshot. Restore writes the pre-DDU live
+# value back through that same helper: a machine that was already 0 (Apply
+# Everything) stays 0; a machine that was 1 returns to 1.
+$script:DduDriverSearchPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching'
+$script:DduDriverSearchName = 'SearchOrderConfig'
+$script:DduDriverSearchId = 'reg:DriverSearchOrderConfig'
+
+function Set-DduDriverSearchPolicy {
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
+    param()
+
+    if (-not (Get-ToolkitState)) {
+        Initialize-ToolkitState | Out-Null
+    }
+
+    $prior = Get-ToolkitRegistryState -Path $script:DduDriverSearchPath -Name $script:DduDriverSearchName
+    $target = "$script:DduDriverSearchPath\$script:DduDriverSearchName"
+    if (-not $PSCmdlet.ShouldProcess($target, 'set DWORD = 0 (disable WU driver search for DDU)')) {
+        return $null
+    }
+
+    Write-Info 'Temporarily disabling Windows driver search (SearchOrderConfig=0) for DDU.'
+    Set-ToolkitRegistryValue -Id $script:DduDriverSearchId `
+        -Path $script:DduDriverSearchPath -Name $script:DduDriverSearchName `
+        -Value 0 -Type 'DWord' -Tier 'Advanced' -Step 'ddu'
+    return $prior
+}
+
+function Restore-DduDriverSearchPolicy {
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
+    param(
+        [Parameter(Mandatory)][bool]$ValueExisted,
+        [object]$PreviousValue,
+        [string]$PreviousKind = 'DWord'
+    )
+
+    if (-not (Get-ToolkitState)) {
+        Initialize-ToolkitState | Out-Null
+    }
+
+    $target = "$script:DduDriverSearchPath\$script:DduDriverSearchName"
+    $action = if ($ValueExisted) {
+        "restore SearchOrderConfig to pre-DDU value $PreviousValue"
+    } else {
+        'remove SearchOrderConfig (it was absent before DDU)'
+    }
+    if (-not $PSCmdlet.ShouldProcess($target, $action)) {
+        return
+    }
+
+    Write-Info 'Restoring Windows driver search to its pre-DDU value.'
+    if (-not $ValueExisted) {
+        if (Test-Path -LiteralPath $script:DduDriverSearchPath) {
+            Remove-ItemProperty -LiteralPath $script:DduDriverSearchPath -Name $script:DduDriverSearchName -ErrorAction SilentlyContinue
+        }
+        return
+    }
+
+    $kind = if ([string]::IsNullOrWhiteSpace($PreviousKind)) { 'DWord' } else { $PreviousKind }
+    Set-ToolkitRegistryValue -Id $script:DduDriverSearchId `
+        -Path $script:DduDriverSearchPath -Name $script:DduDriverSearchName `
+        -Value $PreviousValue -Type $kind -Tier 'Advanced' -Step 'ddu'
+}
+
+function Get-DduDriverSearchRestoreBlock {
+    param(
+        $Prior,
+        [Parameter(Mandatory)][string]$LibPath
+    )
+    if ($null -eq $Prior) { return '' }
+
+    $libEsc = $LibPath.Replace("'", "''")
+    $restoreCall = if ($Prior.valueExists) {
+        $kind = if ($Prior.kind) { [string]$Prior.kind } else { 'DWord' }
+        $kindEsc = $kind.Replace("'", "''")
+        $valueText = if ($kind -eq 'DWord' -or $kind -eq 'QWord') {
+            [string]([int64]$Prior.value)
+        } else {
+            "'" + ([string]$Prior.value).Replace("'", "''") + "'"
+        }
+        "Restore-DduDriverSearchPolicy -ValueExisted:`$true -PreviousValue $valueText -PreviousKind '$kindEsc'"
+    } else {
+        'Restore-DduDriverSearchPolicy -ValueExisted:$false'
+    }
+
+    @"
+        try {
+            . '$libEsc'
+            $restoreCall
+        } catch {
+            Write-Host ('[WARN] Driver search policy was not restored: ' + `$_.Exception.Message) -ForegroundColor Yellow
+        }
+"@
+}
+
 function Restore-DriverSearchPolicy {
+    # GPU-install failure fallback only: force the Windows default (1) so
+    # Windows Update can supply a driver. Not for DDU. DDU must call
+    # Restore-DduDriverSearchPolicy so a tracked before-snapshot and the
+    # pre-DDU live value are preserved.
     reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\DriverSearching" /v "SearchOrderConfig" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
 }
