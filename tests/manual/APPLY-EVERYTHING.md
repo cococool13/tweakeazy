@@ -23,6 +23,7 @@ warning text, phase headings. Below is what must run on Windows.
 | 6 | `Get-ToolkitManifest` | `state.steps['phase9-windows-update'].status` = `skipped`. Same for `phase10-security-tradeoffs`. |
 | 7 | `Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity' -ErrorAction SilentlyContinue` | `Enabled` value unchanged (HVCI is NOT disabled by default run). |
 | 8 | Summary | Does **not** print that Windows Update suppression / security trade-offs ran. |
+| 9 | After Phase 14, before reboot: `Get-Service wuauserv` | `Status` is `Running`. `StartType` is unchanged (not `Disabled`). Cache cleanup stops `wuauserv` only long enough to delete `SoftwareDistribution\Download`, then starts it again. |
 
 ## Run with -IncludeSecurityTradeoffs
 
@@ -30,6 +31,7 @@ warning text, phase headings. Below is what must run on Windows.
 |---|--------|----------|
 | 1 | `pwsh -File ...\APPLY-EVERYTHING.ps1 -IncludeSecurityTradeoffs` | Standard pre-confirm, then **second** UI-Confirm explicitly listing BattlEye/EAC + Windows-Update warnings. Press Enter. |
 | 2 | Phase 9 runs | wuauserv / UsoSvc / DoSvc disabled. WaaSMedicSvc warning may appear on 24H2+ (expected — DACL block). |
+| 2b | After Phase 14 | `wuauserv` stays `Stopped` and `StartType` stays `Disabled`. Phase 14 prints `Leaving wuauserv stopped: Phase 9 disabled Windows Update.` It does not call `Start-Service` for that service. |
 | 3 | Phase 10 runs | Red `[!] ANTI-CHEAT` lines appear before any Run-Step. Then HVCI, VBS, LSA, Spectre keys written. |
 | 4 | Summary | Prints that Windows Update suppression and security trade-off tweaks ran. |
 | 5 | `Get-ToolkitManifest` | `state.registry['reg:HVCIEnabled'].before.value` captured. |
@@ -57,3 +59,5 @@ warning text, phase headings. Below is what must run on Windows.
 - If Phase 9 or 10 runs without `-IncludeSecurityTradeoffs` → **regression of CURSOR-AUDIT #1**. Open issue, link the commit since `f8b1fc3`.
 - If `-WhatIf` proceeds with actual writes → ShouldProcess gate broken in `Set-ToolkitRegistryValue`/`Set-ToolkitServiceStartMode`. Check `lib/toolkit-state.ps1` against `eacd601`.
 - If anti-cheat warning text is missing the words "BattlEye" or "EAC" → **regression of CURSOR-AUDIT #2 / CLAUDE.md anti-cheat convention**.
+- If a default run (no `-IncludeSecurityTradeoffs`) leaves `(Get-Service wuauserv).Status` as `Stopped` while `StartType` is not `Disabled` → Phase 14 cache cleanup stopped Windows Update and did not start it again.
+- If a `-IncludeSecurityTradeoffs` run starts `wuauserv` after Phase 9 set `StartType` to `Disabled` → Phase 14 ignored the Phase 9 disable. Verify prints `Phase 9 disabled wuauserv. Phase 14 leaves that service stopped after cache cleanup.` when the manifest records `service:wuauserv` as applied.
