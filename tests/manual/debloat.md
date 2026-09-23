@@ -41,7 +41,7 @@ still holds.
 | # | Action | Expected |
 |---|--------|----------|
 | 1 | `pwsh -File ...\9 cleanup\restore-debloat.ps1` | Reads manifest, lists candidates, pre-confirm. |
-| 2 | Per app: winget install or Store URL fallback | Installed when winget knows the id; manual recovery URL printed otherwise. |
+| 2 | Per app: winget install with `--exact --id` set to the mapped id and `--source` set to msstore or winget | Cortana uses `9NFFX4SZZ23L`. Personal Teams uses `Microsoft.Teams.Free`. The Appx names are not passed to `--id`. |
 | 3 | `Get-AppxPackage Microsoft.BingNews` | Reappears for the per-user install path. |
 | 4 | `Get-ToolkitManifest` → `state.steps['debloat-restore']` | Records installed-count vs failed-count. |
 
@@ -50,6 +50,18 @@ still holds.
 | # | Action | Expected |
 |---|--------|----------|
 | 1 | After a successful run, re-run debloat.ps1 | Scan shows all apps as `[GONE]`. Script exits with `All bloatware already removed. Nothing to do.` |
+
+## Verify note (runtime-pending)
+
+Code-complete, runtime-pending. Pester covers the catalog, the map, and
+the "record only after success" helper. This checklist is the Windows gate.
+Do not mark the change tested until the rows below have been run.
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | Compare `Get-ToolkitDebloatCatalog` with Apply All phase 13 and `debloat.ps1` | Both call that function. The list includes `Microsoft.OutlookForWindows` and `Microsoft.GamingApp`. Neither script has its own package array. |
+| 2 | Remove a provisioned package, then force `Remove-AppxProvisionedPackage` to fail (for example, a package that refuses removal) and re-run | `state.packages.provisionedRemoved` gains a name only when removal succeeded. A failed remove is not recorded. |
+| 3 | `restore-debloat.ps1` after Cortana and personal Teams were recorded | The winget line is `--id 9NFFX4SZZ23L --source msstore` for Cortana and `--id Microsoft.Teams.Free --source winget` for Teams. The Appx names are not passed to `--id`. |
 
 ## Failure modes to flag
 

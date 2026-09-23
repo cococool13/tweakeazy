@@ -78,16 +78,14 @@ Describe 'check-uwp-apps.ps1 — surface contract' {
         }
     }
 
-    Context 'Pairs with debloat.ps1 (audit-then-decide UX)' {
-        It 'parses 9 cleanup/debloat.ps1 for $appsToRemove + $neverRemove' {
-            # The whole point of this script is staying in sync with
-            # debloat.ps1 without manual list duplication. AST-walk is
-            # the safer way; this assertion catches accidental regex
-            # rewrites that break the cross-script contract.
-            $script:Content | Should -Match 'debloat\.ps1'
-            $script:Content | Should -Match '\$appsToRemove'
-            $script:Content | Should -Match '\$neverRemove'
-            $script:Content | Should -Match '\[System\.Management\.Automation\.Language\.Parser\]::ParseFile'
+    Context 'Pairs with the shared debloat catalog (audit-then-decide UX)' {
+        It 'reads Get-ToolkitDebloatCatalog and Get-ToolkitDebloatNeverRemove' {
+            # The list lives in lib/debloat-catalog.ps1. Parsing
+            # debloat.ps1 would drift the moment that script stopped
+            # embedding the array literal.
+            $script:Content | Should -Match 'debloat-catalog\.ps1'
+            $script:Content | Should -Match 'Get-ToolkitDebloatCatalog'
+            $script:Content | Should -Match 'Get-ToolkitDebloatNeverRemove'
         }
     }
 }

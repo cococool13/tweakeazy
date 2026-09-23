@@ -192,6 +192,29 @@ Describe 'APPLY-EVERYTHING.ps1 — surface contract' {
         }
     }
 
+    Context 'Phase 13 debloat uses the shared catalog' {
+        It 'loads lib/debloat-catalog.ps1' {
+            $script:Content | Should -Match 'lib\\debloat-catalog\.ps1'
+        }
+
+        It 'takes the removal list from Get-ToolkitDebloatCatalog' {
+            $script:Content | Should -Match 'Get-ToolkitDebloatCatalog'
+            $script:Content | Should -Not -Match '\$appsToRemove\s*=\s*@\('
+        }
+
+        It 'does not call Remove-AppxProvisionedPackage itself' {
+            # Recording used to sit after a SilentlyContinue remove, so
+            # a failed provisioned remove was still written to the manifest.
+            $calls = $script:Ast.FindAll({
+                    param($n)
+                    $n -is [System.Management.Automation.Language.CommandAst] -and
+                    $n.GetCommandName() -eq 'Remove-AppxProvisionedPackage'
+                }, $true)
+            @($calls) | Should -BeNullOrEmpty
+            $script:Content | Should -Match 'Invoke-ToolkitDebloatRemoval'
+        }
+    }
+
     Context 'Admin self-check (CLAUDE.md invariant #6)' {
         It 'calls UI-RequireAdmin near the top' {
             $head = ($script:Content -split "`n" | Select-Object -First 80) -join "`n"

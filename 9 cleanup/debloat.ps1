@@ -10,15 +10,21 @@
 # state.packages.provisionedRemoved for audit trail and revert.
 #
 # Pair: restore-debloat.ps1 reads the manifest and reinstalls
-# recorded packages via winget. Provisioned (per-image) reinstall
+# recorded packages via the Appx-to-winget map in
+# lib/debloat-catalog.ps1. Provisioned (per-image) reinstall
 # typically needs the original Windows install media; winget covers
 # the per-user reinstall path.
+#
+# The removal list is that same catalog (shared with Apply All).
+# Provisioned removals are recorded only after
+# Remove-AppxProvisionedPackage succeeds.
 #
 # Replaces: debloat.ps1 (dumb version)
 # Must be run as Administrator.
 # ============================================================
 
 . "$PSScriptRoot\..\lib\toolkit-state.ps1"
+. "$PSScriptRoot\..\lib\debloat-catalog.ps1"
 
 $Host.UI.RawUI.WindowTitle = "Gaming Optimization — Debloat"
 
@@ -37,43 +43,9 @@ if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 Initialize-ToolkitState | Out-Null
 $stepName = "debloat"
 
-# Apps to remove — categorized by confidence level
-$appsToRemove = @(
-    @{ Name = "Clipchamp.Clipchamp"; Desc = "Clipchamp Video Editor"; Tier = "Safe" }
-    @{ Name = "Microsoft.BingNews"; Desc = "Bing News"; Tier = "Safe" }
-    @{ Name = "Microsoft.BingWeather"; Desc = "Bing Weather"; Tier = "Safe" }
-    @{ Name = "Microsoft.GetHelp"; Desc = "Get Help"; Tier = "Safe" }
-    @{ Name = "Microsoft.Getstarted"; Desc = "Tips"; Tier = "Safe" }
-    @{ Name = "Microsoft.MicrosoftOfficeHub"; Desc = "Office Hub"; Tier = "Safe" }
-    @{ Name = "Microsoft.MicrosoftSolitaireCollection"; Desc = "Solitaire Collection"; Tier = "Safe" }
-    @{ Name = "Microsoft.MicrosoftStickyNotes"; Desc = "Sticky Notes"; Tier = "Safe" }
-    @{ Name = "Microsoft.People"; Desc = "People"; Tier = "Safe" }
-    @{ Name = "Microsoft.PowerAutomateDesktop"; Desc = "Power Automate"; Tier = "Safe" }
-    @{ Name = "Microsoft.Todos"; Desc = "Microsoft To Do"; Tier = "Safe" }
-    @{ Name = "Microsoft.WindowsAlarms"; Desc = "Alarms & Clock"; Tier = "Safe" }
-    @{ Name = "Microsoft.WindowsFeedbackHub"; Desc = "Feedback Hub"; Tier = "Safe" }
-    @{ Name = "Microsoft.WindowsMaps"; Desc = "Maps"; Tier = "Safe" }
-    @{ Name = "Microsoft.WindowsSoundRecorder"; Desc = "Sound Recorder"; Tier = "Safe" }
-    @{ Name = "Microsoft.YourPhone"; Desc = "Phone Link"; Tier = "Safe" }
-    @{ Name = "Microsoft.ZuneMusic"; Desc = "Groove Music / Media Player"; Tier = "Safe" }
-    @{ Name = "Microsoft.ZuneVideo"; Desc = "Movies & TV"; Tier = "Safe" }
-    @{ Name = "MicrosoftCorporationII.QuickAssist"; Desc = "Quick Assist"; Tier = "Safe" }
-    @{ Name = "MicrosoftTeams"; Desc = "Teams (personal)"; Tier = "Safe" }
-    @{ Name = "Microsoft.549981C3F5F10"; Desc = "Cortana"; Tier = "Safe" }
-    @{ Name = "Microsoft.GamingApp"; Desc = "Xbox App"; Tier = "Advanced" }
-)
-
-# Apps we NEVER remove (safety list)
-$neverRemove = @(
-    "Microsoft.WindowsStore"
-    "Microsoft.WindowsTerminal"
-    "Microsoft.WindowsCalculator"
-    "Microsoft.Windows.Photos"
-    "Microsoft.ScreenSketch"
-    "Microsoft.Paint"
-    "Microsoft.WindowsNotepad"
-    "Microsoft.DesktopAppInstaller"
-)
+# Shared with Apply All. Do not keep a second list in this file.
+$appsToRemove = @(Get-ToolkitDebloatCatalog)
+$neverRemove = @(Get-ToolkitDebloatNeverRemove)
 
 # ============================================================
 # Scan installed apps
@@ -105,7 +77,7 @@ foreach ($app in $appsToRemove) {
 if ($alreadyGone.Count -gt 0) {
     Write-Host "  Already removed ($($alreadyGone.Count)):" -ForegroundColor Gray
     foreach ($app in $alreadyGone) {
-        Write-Host "    [GONE] $($app.Desc)" -ForegroundColor DarkGreen
+        Write-Host "    [GONE] $($app.Description)" -ForegroundColor DarkGreen
     }
     Write-Host ""
 }
@@ -129,7 +101,7 @@ Write-Host ""
 if ($safeApps.Count -gt 0) {
     Write-Host "  Safe to remove:" -ForegroundColor Green
     foreach ($app in $safeApps) {
-        Write-Host "    $($app.Desc) ($($app.Name))" -ForegroundColor White
+        Write-Host "    $($app.Description) ($($app.Name))" -ForegroundColor White
     }
 }
 
@@ -137,7 +109,7 @@ if ($advancedApps.Count -gt 0) {
     Write-Host ""
     Write-Host "  Advanced (review carefully):" -ForegroundColor Yellow
     foreach ($app in $advancedApps) {
-        Write-Host "    $($app.Desc) ($($app.Name))" -ForegroundColor Yellow
+        Write-Host "    $($app.Description) ($($app.Name))" -ForegroundColor Yellow
         if ($app.Name -eq "Microsoft.GamingApp") {
             Write-Host "      ^ Only remove if NOT using Xbox Game Pass" -ForegroundColor Red
         }
@@ -162,19 +134,20 @@ $current = 0
 
 foreach ($app in $toRemove) {
     $current++
-    $package = Get-AppxPackage -Name $app.Name -ErrorAction SilentlyContinue
-    if (-not $package) {
-        Write-Host "  [$current/$($toRemove.Count)] $($app.Desc) — Already gone" -ForegroundColor Gray
+    Write-Host "  [$current/$($toRemove.Count)] $($app.Description)..." -NoNewline
+    $userResult = Invoke-ToolkitDebloatRemoval -PackageName $app.Name -Scope User
+    if ($userResult.Protected) {
+        Write-Host " Skipped (protected)" -ForegroundColor Red
         continue
     }
-
-    Write-Host "  [$current/$($toRemove.Count)] $($app.Desc)..." -NoNewline
-    try {
-        $package | Remove-AppxPackage -ErrorAction Stop
-        Record-ToolkitPackageRemoval -PackageName $app.Name
+    if ($userResult.Absent) {
+        Write-Host " Already gone" -ForegroundColor Gray
+        continue
+    }
+    if ($userResult.Removed -gt 0) {
         Write-Host " Removed" -ForegroundColor Green
         $removed++
-    } catch {
+    } else {
         Write-Host " Failed (may need Store)" -ForegroundColor Yellow
         $skipped++
     }
@@ -189,17 +162,11 @@ Write-Host "  Removing provisioned packages..." -ForegroundColor Gray
 $provRemoved = 0
 $provSkipped = 0
 foreach ($app in $toRemove) {
-    $provisioned = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue |
-        Where-Object { $_.DisplayName -eq $app.Name }
-    if ($provisioned) {
-        try {
-            $provisioned | Remove-AppxProvisionedPackage -Online -ErrorAction Stop | Out-Null
-            Record-ToolkitPackageRemoval -PackageName $app.Name -Provisioned
-            $provRemoved++
-        } catch {
-            $provSkipped++
-        }
-    }
+    # Records state.packages.provisionedRemoved only after a successful remove.
+    $provResult = Invoke-ToolkitDebloatRemoval -PackageName $app.Name -Scope Provisioned
+    if ($provResult.Protected) { continue }
+    $provRemoved += $provResult.Removed
+    $provSkipped += $provResult.Failed
 }
 
 if ($provRemoved -gt 0) {
