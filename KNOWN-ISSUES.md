@@ -64,11 +64,11 @@ that phase as `6 gpu/debloat-driver-telemetry.ps1`. Tier: `Advanced`.
 Matters for capture-card workflows. Small toggle. Tier: `Advanced`. Ship on
 request.
 
-### `5 Graphics/12 Resolution Refresh Rate.ps1` & `13 Hags Windowed.ps1`
+### `5 Graphics/12 Resolution Refresh Rate.ps1`
 
-`12` walks through Settings UI clicks — no scriptable equivalent, leave in
-`BIOS-CHECKLIST.md`. `13 HAGS Windowed` is registry-driven and shippable;
-tier: `Advanced`.
+Walks through Settings UI clicks — no scriptable equivalent. Leave it in
+`BIOS-CHECKLIST.md`. HAGS windowed (`5 Graphics/13`) is shipped; see
+[opt-in items](#items-shipped-as-opt-in-only-not-in-apply-everythingps1).
 
 ### `6 Windows/22 Control Panel Settings.ps1` (108 KB)
 
@@ -107,31 +107,12 @@ Vendor drivers carry firmware-specific quirks. FR33THY's own script warns
 "breaks Microsoft DirectStorage." Tier: `Advanced`. Ship with that warning
 verbatim in the header if requested.
 
-### Items skipped on technical grounds (still shippable, but warn loudly)
+### Moved out of this list (now shipped)
 
-These three are not banned — per the new scope philosophy, the user can opt
-into them — but if you port them, the header **must** carry a strong
-"cargo-cult" warning explaining why most users should not enable them. The PC
-still boots and games still run, so they pass the hard-constraint test.
-
-- **`6 Windows/33 Defender Optimize.ps1` + `8 Advanced/1 Defender.ps1` (wholesale Defender disable)** —
-  on Win11 24H2, Tamper Protection makes most of these registry writes no-ops
-  or unstable. Ship as `8 security vs performance/disable-defender-wholesale.ps1`
-  with `UI-Confirm` text noting: "Tamper Protection may revert these writes;
-  expected behavior. Defender exclusions for game library paths (already
-  shipped) are usually the better choice."
-- **`8 Advanced/8 SMT/HT disable`** — measurably **hurts** multi-thread
-  performance on modern Ryzen/Intel CPUs in nearly all 2025-era games.
-  Workload-specific; users who genuinely need this know exactly when (and can
-  do it from BIOS faster than from a script). Ship as
-  `8 security vs performance/disable-smt-ht.ps1` with header text noting the
-  empirical regression.
-- **`8 Advanced/9 Core 1 Thread 1` (explorer.exe → single-core affinity)** —
-  pure cargo-cult; zero measurable benefit and can cause Explorer UI hitches
-  under multitasking. Shipped as
-  `5 registry tweaks/individual/disable-explorer-affinity.ps1` +
-  `enable-explorer-affinity.ps1` with header text noting "no measurable benefit;
-  documented for completeness."
+Wholesale Defender disable, SMT / Hyper-Threading disable, and single-core
+Explorer affinity are opt-in pairs. Each header carries the cargo-cult
+warning. See
+[opt-in items](#items-shipped-as-opt-in-only-not-in-apply-everythingps1).
 
 ---
 
@@ -147,30 +128,45 @@ recommendation column is for triage, not a binding queue.
 |---|---|---|---|
 | Per-category interactive numbered menus (e.g. `4 Installers/1 Installers.ps1`, `6 Windows/13 Bloatware.ps1`) | Most category scripts | Lighter than one mega-launcher; each folder gets its own opt-in submenu | Low — already partly modeled by our `launcher.ps1` per-folder submenus |
 | `autounattend.xml` generator with TPM/RAM/SecureBoot bypass + OOBE skip | `2 Refresh/4 Autounattend.ps1` | Useful clean-install helper; pair with USB-staging script | Medium |
-| "Audit/check" scripts that enumerate state before suggesting removal (legacy apps, legacy features, UWP, Task Manager startup) | `6 Windows/14–18` | "Report then decide" UX is healthier than blanket apply | Low–Medium |
+| "Audit/check" scripts that enumerate state before suggesting removal (legacy apps, legacy features, Task Manager startup) | `6 Windows/14–18` | UWP inventory is shipped as `11 hardware checks/check-uwp-apps.ps1`. The other 14–18 checks are still not a matching set. | Low–Medium |
 
-### Categories we do NOT have at all
+### Hardware check folders (shipped)
 
-| Upstream folder | Content | Tier when ported | Notes |
-|---|---|---|---|
-| `1 Check/` | Hardware/BIOS validation, Space/RAM/GPU check, CPU/RAM/GPU stress tests, HWiNFO launcher, BIOS guide | `Safe` (all read-only or external-tool wrappers) | Would fit as a new top-level `11 hardware checks/` folder. Stress tests should download external tools (Prime95, MemTest) with SHA-256 verify, not bundle. |
-| `7 Hardware/` | Mouse polling test, controller overclock + polling, monitor optimization, bufferbloat test, PC build guide | `Safe` for tests, `Advanced` for polling overclock | Polling-rate testers are genuinely useful. Bufferbloat test is a web-launch wrapper. |
+`11 hardware checks/` and `12 hardware/` are in the tree and on the launcher
+(`[11]` Hardware checks, `[12]` Hardware). Tier: `Safe`. Default behavior is
+read-only. `check-storage.ps1 -Fix` can enable TRIM. `-RunStress` on the CPU,
+GPU, and RAM checks prints that tool download is not wired yet. It does not
+launch Prime95, FurMark, or Memory Diagnostic.
 
-### Specific new tweaks in existing folders
+`11 hardware checks/` (3):
 
-| Upstream script | Our folder when ported | Tier | One-line rationale |
-|---|---|---|---|
-| `6 Windows/8 Widgets`, `9 Copilot` (already partly handled), `19 Gamebar`, `20 Edge & WebView` | `5 registry tweaks/individual/` | `Advanced` | Modern Win11 debloat targets; mostly registry one-liners |
-| `6 Windows/23 Sound`, `24 Loudness EQ` | `5 registry tweaks/individual/` | `Advanced` | Audio path tuning; mostly preference |
-| `6 Windows/28 Write Cache Buffer Flushing` | We already ship `disable-write-cache-flush.ps1` | — | Duplicate; no action |
-| `6 Windows/32 Core Isolation` | `8 security vs performance/` | `Security Trade-off` | Memory Integrity / HVCI overlap — verify against our existing VBS scripts before porting |
-| `8 Advanced/7 ReBar Force` | `6 gpu/` | `Advanced` | Force-enable Resizable BAR on unsupported configs; real perf win when it works |
-| `8 Advanced/10 Priority` | `5 registry tweaks/individual/` | `Advanced` | Process priority class tweaks |
-| `8 Advanced/12 Hardware Legacy Flip`, `13 Hardware Composed Independent Flip` | `5 registry tweaks/individual/` | `Advanced` | DWM/flip-model tweaks; complementary to our MPO disable |
-| `8 Advanced/18 Start Search Shell Mobsync` | We already ship `mobsync-disable.ps1` | — | Partial overlap; check for new shell-component disables in upstream version |
-| `5 Graphics/9 MSI Mode` (folder version vs our `6 gpu/enable-msi-mode.ps1`) | — | — | Compare detection logic; upstream may have improved device enumeration |
-| `5 Graphics/13 HAGS Windowed` | `5 registry tweaks/individual/` | `Advanced` | HAGS-in-windowed-mode toggle |
-| `3 Setup/12 Updates Pause` (programmatic pause, not full disable) | `5 registry tweaks/individual/` | `Advanced` | Softer alternative to our `disable-windows-update.ps1`; ship alongside |
+- `check-storage.ps1` — TRIM / fixed-disk report (`-Fix` can enable TRIM)
+- `check-uwp-apps.ps1` — Appx inventory vs the debloat lists
+- `show-system-summary.ps1` — CIM + registry baseline
+
+`12 hardware/` (9):
+
+- `check-cpu-stress.ps1`
+- `check-directstorage.ps1`
+- `check-gpu-stress.ps1`
+- `check-input-polling.ps1`
+- `check-msi-mode.ps1`
+- `check-pagefile.ps1`
+- `check-ram.ps1`
+- `check-rebar.ps1`
+- `show-mouse-info.ps1`
+
+Still not in the tree from those upstream folders: an HWiNFO launcher,
+controller overclock, monitor optimization, a bufferbloat wrapper, and a PC
+build guide. A SHA-256 download path for Prime95, MemTest, or FurMark is
+still unshipped.
+
+### Still not scripted
+
+| Upstream script | Status |
+|---|---|
+| `6 Windows/24 Loudness EQ` | Still not scripted. Manual Settings UI. Sound scheme None is shipped (`sound-scheme-none.reg` and the Apply step). |
+| `6 Windows/20 Edge & WebView` (WebView half) | No WebView2 removal script. Edge background and prefetch policies are shipped. |
 
 ### What upstream does worse than us (don't borrow)
 
@@ -197,9 +193,66 @@ convention; add `# Copyright FR33THY (MIT)` alongside it for any new ports).
 
 ## Items shipped as opt-in only (NOT in `APPLY-EVERYTHING.ps1`)
 
+These run only when the user launches the script or `.reg`. Default Apply
+does not call them.
+
 ### `5 registry tweaks/individual/disable-write-cache-flush.ps1`
 
 Per-disk write cache buffer flushing disabled. Material data-loss risk on power loss. Provided as a standalone script for users on UPS-backed desktops who explicitly want the small write-throughput gain. Reverted via paired `enable-write-cache-flush.ps1`.
+
+### `8 security vs performance/disable-defender-wholesale.ps1`
+
+Wholesale Defender disable. Tier: `Security Trade-off`. On Win11 24H2, Tamper Protection can revert the writes. The header points users at game-library exclusions instead. Pair: `enable-defender-wholesale.ps1`.
+
+### `8 security vs performance/disable-smt-ht.ps1`
+
+Limits boot processors to the physical core count (`bcdedit /set numproc`). Tier: `Security Trade-off`. The header states this hurts multi-thread performance on current Ryzen and Intel CPUs. Pair: `enable-smt-ht.ps1`. Reboot required.
+
+### `5 registry tweaks/individual/disable-explorer-affinity.ps1`
+
+Pins `explorer.exe` to CPU 0. Tier: `Advanced`. The header states there is no measurable benefit. Pair: `enable-explorer-affinity.ps1`.
+
+### `6 gpu/force-rebar.ps1`
+
+Writes `HwUMAEnable` to force Resizable BAR exposure. Tier: `Advanced`. Pair: `disable-rebar.ps1`. Read-only state is `12 hardware/check-rebar.ps1`. BIOS Above-4G / CSM requirements stay in the script header.
+
+### `5 registry tweaks/individual/pause-windows-update.ps1`
+
+Pauses Windows Update for 1–35 days. Tier: `Advanced`. Pair: `resume-windows-update.ps1`. This is the soft pause. Phase 9 of Apply (service suppression) is a different path and stays behind `-IncludeSecurityTradeoffs`.
+
+### `5 registry tweaks/individual/disable-edge-prefetch.ps1`
+
+Disables Edge predictive prefetch (`NetworkPredictionOptions`). Pair: `enable-edge-prefetch.ps1`. Edge startup boost and background mode are separate and also run in default Apply (`disable-edge-background.ps1`).
+
+### `5 registry tweaks/individual/disable-hags-windowed.reg`
+
+Disables HAGS for windowed presentation (`DirectFlipDisabled`). Tier: `Advanced`. Pair: `revert-hags-windowed.reg`.
+
+### `5 registry tweaks/individual/dwm-flip-model.reg`
+
+Hardware legacy flip and hardware-composed independent flip. Tier: `Advanced`. Pair: `revert-dwm-flip-model.reg`.
+
+### Shipped on the default Apply path
+
+These are in the tree. Default `APPLY-EVERYTHING.ps1` runs the same change
+without `-IncludeSecurityTradeoffs`.
+
+- Widgets — `disable-widgets.reg` / `revert-widgets.reg`. Apply step "Disable Widgets".
+- Copilot — `disable-copilot.reg` / `revert-copilot.reg`. Apply step "Disable Copilot".
+- Game Bar / DVR — `disable-game-bar-dvr.reg` / `revert-game-bar-dvr.reg`. Apply step "Game Bar / DVR disabled".
+- Sound scheme None — `sound-scheme-none.reg` / `revert-sound-scheme-none.reg`. Apply step "Sound scheme set to None".
+- Edge background / startup boost — `disable-edge-background.ps1` / `enable-edge-background.ps1`, also an Apply step. No separate WebView2 removal script.
+- Game scheduling priority — `game-priority.reg` / `revert-game-priority.reg`. Apply step "Game CPU/GPU priority increased".
+- MSI mode — `6 gpu/enable-msi-mode.ps1` / `disable-msi-mode.ps1` (Apply phase 7). Read-only audit: `12 hardware/check-msi-mode.ps1`.
+- Offline Files / mobsync — `4 services/individual/mobsync-disable.ps1` / `mobsync-enable.ps1`. Apply disables `CscService`.
+- Full HAGS — windows-settings phase sets `HwSchMode = 2`. Standalone pair `enable-hags.ps1` / `disable-hags.ps1` refuses to run without `-Experimental`. Windowed-only HAGS stays opt-in (`disable-hags-windowed.reg`).
+
+### Shipped Security Trade-off (off unless `-IncludeSecurityTradeoffs`)
+
+Core Isolation / HVCI / VBS is `8 security vs performance/configure-vbs.ps1`
+(`-Disable` / `-Enable`). Apply Phase 10 runs only with
+`-IncludeSecurityTradeoffs`. Phase 9 (Windows Update suppression) uses the
+same switch.
 
 ---
 
@@ -207,7 +260,7 @@ Per-disk write cache buffer flushing disabled. Material data-loss risk on power 
 
 ### Domain-joined PCs
 
-`partOfDomain = true` is captured in the manifest profile and surfaced as a launcher hint. The aggressive update-suppression and Defender-exclusion steps will still run if the user proceeds — the toolkit does not auto-skip them. Enterprise policy may revert most of the changes anyway. Run on a domain-joined gaming PC at your own risk.
+`partOfDomain = true` is captured in the manifest profile and surfaced as a launcher hint. The toolkit does not auto-skip phases because the PC is domain-joined. Default `APPLY-EVERYTHING.ps1` skips Phase 9 (Windows Update suppression) and Phase 10 (VBS / HVCI / LSA / Spectre) unless `-IncludeSecurityTradeoffs` is passed. Defender exclusions (Phase 12) still run if the user proceeds. Enterprise policy may revert most of the changes anyway. Run on a domain-joined gaming PC at your own risk.
 
 ### Battery laptops
 
@@ -236,8 +289,9 @@ shipping version; each is logged so it isn't forgotten.
 ### From the 2026-05-24 continuous-improvement loop (in progress)
 
 **Status: PSScriptAnalyzer gate fully green (0 Error, 0 Warning) on the
-default ruleset.** 16/16 Pester tests passing. Full progression table in
-`CHANGELOG.md` → `[Unreleased]`.
+default ruleset.** Latest gate in `CHANGELOG.md` → `[Unreleased]` (fourth
+loop): **518 Pester tests passing, 23 skipped**. The 16-test and 243-test
+rows in that file are earlier snapshots, not the current suite.
 
 #### Function-naming refactor (PSUseApprovedVerbs / PSUseSingularNouns)
 
@@ -273,21 +327,25 @@ keys were migrated to `Set-ToolkitRegistryValue` in commit `40630c3`; the
 HKCU writes remain because they're user-toggleable via Windows Settings
 without manifest restore. v1.1 migration target.
 
-#### Per-script Pester suites  *(largely RESOLVED in 2026-05-24 resumed loop)*
+#### Per-script Pester suites  *(suite size matches the fourth-loop gate)*
 
-Coverage now spans the 4 top-priority lib helpers
+Coverage spans the 4 top-priority lib helpers
 (`lib/toolkit-state.ps1`, `lib/ui-helpers.ps1`, `lib/gpu-detection.ps1`,
 `lib/download-helpers.ps1`), the 3 entry points (`APPLY-EVERYTHING.ps1`,
 `REVERT-EVERYTHING.ps1`, `9 cleanup/debloat.ps1`), the launcher
 (`launcher.ps1`), plus per-feature suites for `check-storage.ps1`,
 `check-uwp-apps.ps1`, the DoH pair, the RSS pair, and the MMCSS pair.
+Later loops added `tests/5-registry-tweaks/individual-tweaks.Tests.ps1`
+(templated sweep of `5 registry tweaks/individual/*.ps1`), the invariant
+suites, and the hardware-check tests.
 
-243 total Pester tests passing (from 0 at original session baseline).
+518 Pester tests passing, 23 skipped, at the end of the fourth loop in
+`CHANGELOG.md` (from 0 at the original session baseline).
 
-Still uncovered: the 30+ individual `5 registry tweaks/individual/*.ps1`
-tweak scripts. Most are short and follow the same shape — a future
-loop can sweep them with a templated test suite. Lower priority than
-the entry points + libs, which were the original concern.
+The individual tweak scripts are covered by that templated sweep (parse,
+comment-based help, admin self-check, script-start logging, tracked-helper
+use). Remaining skips are the gap lists in that suite (`$HelpGaps`,
+`$ApplyHelperGaps`, `$RestoreHelperGaps`), not an uncovered folder.
 
 #### Windows Sandbox configs for system-mutating scripts  *(RESOLVED in 2026-05-24 resumed loop, commit `8ddff76`)*
 
