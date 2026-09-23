@@ -136,6 +136,7 @@ Take a snapshot named `post-apply` first. Then:
 - [ ] **12.2** Reboot. Login prompt works. Desktop renders. Network / audio / display / mouse / keyboard all functional.
 - [ ] **12.3** Re-run `verify-tweaks.ps1`. Most tracked tweaks now report not-applied or default state.
 - [ ] **12.4** Re-launch `.\launcher.ps1`. Categories no longer show `[OK] applied` for the reverted tweaks. (Some defender exclusions and `state.packages.removed` entries may persist — that's intentional, not a bug.)
+- [ ] **12.5** Captured HKLM ids restore from the manifest, not a hardcoded default. Before revert, record `before` for `reg:DriverSearchOrderConfig`, `reg:HiberbootEnabled`, `reg:PowerThrottlingOff`, `reg:Win32PrioritySeparation`, and `reg:AllowTelemetry`. After revert, each live value matches that `before` (value removed when `valueExists` is false). Manifest has one id per Hiberboot and power-throttling value (`reg:`, not a second `pwr:` writer). Detail in `tests/manual/REVERT-EVERYTHING.md`. Code-complete, runtime-pending until this box is checked.
 
 ## 13. Idempotency
 
