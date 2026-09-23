@@ -13,11 +13,11 @@
 :: Source: https://github.com/ChrisTitusTech/winutil
 :: ============================================================
 
-:: Load UI helpers (ANSI colors)
-call "%~dp0..\lib\ui-helpers.bat"
-
-call :ui_header "Chris Titus Tech Windows Utility (WinUtil)"
-call :ui_admin_check
+:: Routines live in ui-helpers.bat. Pass the name; a label call
+:: resolves in this file and would skip the admin check.
+call "%~dp0..\lib\ui-helpers.bat" ui_header "Chris Titus Tech Windows Utility (WinUtil)"
+call "%~dp0..\lib\ui-helpers.bat" ui_admin_check
+if errorlevel 1 exit /b 1
 
 set "WINUTIL_VERSION=26.04.21"
 set "WINUTIL_URL=https://github.com/ChrisTitusTech/winutil/releases/download/%WINUTIL_VERSION%/winutil.ps1"
@@ -57,7 +57,7 @@ if not exist "%WINUTIL_FILE%" (
     exit /b 1
 )
 
-call :ui_step_ok "Downloaded to %WINUTIL_FILE%"
+call "%~dp0..\lib\ui-helpers.bat" ui_step_ok "Downloaded to %WINUTIL_FILE%"
 
 for /f "tokens=*" %%h in ('powershell -NoProfile -Command "(Get-FileHash -Algorithm SHA256 '%WINUTIL_FILE%').Hash.ToLowerInvariant()"') do set "WINUTIL_HASH=%%h"
 echo.
@@ -72,7 +72,7 @@ if /I not "%WINUTIL_HASH%"=="%WINUTIL_SHA256%" (
     exit /b 1
 )
 
-call :ui_step_ok "SHA-256 verified"
+call "%~dp0..\lib\ui-helpers.bat" ui_step_ok "SHA-256 verified"
 
 echo   %C_WARN%SECURITY: The verified script has been saved locally. You can review it%C_R%
 echo   %C_WARN%before running. To review: open the file in a text editor.%C_R%
