@@ -136,6 +136,11 @@ Take a snapshot named `post-apply` first. Then:
 - [ ] **12.2** Reboot. Login prompt works. Desktop renders. Network / audio / display / mouse / keyboard all functional.
 - [ ] **12.3** Re-run `verify-tweaks.ps1`. Most tracked tweaks now report not-applied or default state.
 - [ ] **12.4** Re-launch `.\launcher.ps1`. Categories no longer show `[OK] applied` for the reverted tweaks. (Some defender exclusions and `state.packages.removed` entries may persist — that's intentional, not a bug.)
+- [ ] **12.5** Visual effects and sound scheme are fully restored (code-complete, runtime-pending until this box is checked on Windows). After Revert All, before or after reboot:
+  - `reg query "HKCU\Control Panel\Desktop" /v UserPreferencesMask` is type `REG_BINARY` and data `9E1E078012000000` (Let Windows choose). It must not still be the Apply mask `9012038012000000`.
+  - `reg query "HKCU\Control Panel\Desktop" /v FontSmoothing` is type `REG_SZ` and data `2`.
+  - `reg query "HKCU\Software\Microsoft\GameBar" /v AutoGameModeEnabled` is type `REG_DWORD` and data `0x1`.
+  - For each event Apply cleared (`.Default`, `DeviceConnect`, `DeviceDisconnect`, `DeviceFail`, `MailBeep`, `Notification.Default`, `SystemAsterisk`, `SystemExclamation`, `SystemNotification`, `WindowsUAC`), the default value of `HKCU\AppEvents\Schemes\Apps\.Default\<event>\.Current` equals the sibling `.Default` value. It must not be an empty string when that sibling has a wav path. Scheme name `(Default)` under `HKCU\AppEvents\Schemes` is `.Default`.
 
 ## 13. Idempotency
 
