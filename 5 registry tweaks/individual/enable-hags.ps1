@@ -91,6 +91,7 @@ if (-not $PSCmdlet.ShouldProcess('HKLM:\SYSTEM\CurrentControlSet\Control\Graphic
 }
 
 UI-Step -Label 'Setting HwSchMode = 2 (HAGS enabled)' -Action {
+    # Shared id with Apply and GPU configure. Do not invent nv:/amd:/intel:.
     Set-ToolkitRegistryValue `
         -Id 'reg:HwSchMode' `
         -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' `
