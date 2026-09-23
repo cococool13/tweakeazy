@@ -110,6 +110,31 @@ Describe 'launcher.ps1 — surface contract' {
         }
     }
 
+    Context 'Regenerate baseline (launcher [B])' {
+        It 'Invoke-RegenerateBaseline passes -ForceNew only after the YES confirm' {
+            $fn = $script:Functions | Where-Object Name -EQ 'Invoke-RegenerateBaseline'
+            $fn | Should -Not -BeNullOrEmpty
+            $body = $fn.Body.Extent.Text
+            $body | Should -Match 'Type YES to confirm'
+            $yesIdx = $body.IndexOf('-cne "YES"')
+            $forceIdx = $body.IndexOf('Initialize-ToolkitState -ForceNew')
+            $yesIdx | Should -BeGreaterThan -1
+            $forceIdx | Should -BeGreaterThan $yesIdx
+        }
+
+        It 'no script outside launcher.ps1 passes -ForceNew' {
+            $repoRoot = Split-Path $PSScriptRoot -Parent
+            $hits = @(Get-ChildItem -LiteralPath $repoRoot -Recurse -Filter '*.ps1' -File |
+                Where-Object { $_.FullName -notmatch '[\\/]tests[\\/]' } |
+                Select-String -Pattern 'Initialize-ToolkitState\s+-ForceNew')
+            $rel = @($hits | ForEach-Object {
+                $_.Path.Substring($repoRoot.Length).TrimStart('\', '/')
+            })
+            $rel.Count | Should -Be 1
+            $rel[0] | Should -Be 'launcher.ps1'
+        }
+    }
+
     Context 'Admin refusal short-circuit' {
         It 'Start-Launcher exits early when not Administrator' {
             $fn = $script:Functions | Where-Object Name -EQ 'Start-Launcher'
