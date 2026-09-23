@@ -19,8 +19,9 @@ call :ui_step_ok "[2/8] RSS kept enabled (default)"
 netsh int tcp set global dca=disabled >nul 2>&1
 call :ui_step_ok "[3/8] Direct Cache Access restored to default"
 
-netsh int tcp set global timestamps=enabled >nul 2>&1
-call :ui_step_ok "[4/8] TCP Timestamps restored"
+:: Inbox default is disabled. Apply sets the same value. Do not turn timestamps on.
+netsh int tcp set global timestamps=disabled >nul 2>&1
+call :ui_step_ok "[4/8] TCP Timestamps left disabled (Windows default)"
 
 powershell -Command "Get-NetAdapter | ForEach-Object { Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName 'Large Send Offload*' -DisplayValue 'Enabled' -ErrorAction SilentlyContinue }" >nul 2>&1
 call :ui_step_ok "[5/8] Large Send Offload re-enabled"
