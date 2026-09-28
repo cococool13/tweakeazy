@@ -280,6 +280,19 @@ offenders ($matches, $pid, $profile, $error, $host) listed. (`92e9c3c`)
 | After HAGS pair                      | 0 | 0 | 518 | 23 | 11.1% |
 | After CLAUDE.md rule codification    | 0 | 0 | 518 | 23 | 11.1% |
 
+### Added
+
+Catch-up for work shipped on `main` after the 2026-05-24 fourth loop (`f8663e2`). Gate tables above are unchanged.
+
+- **Hardware audits (read-only).** `12 hardware/check-msi-mode.ps1` reports MSI vs line-based interrupts for GPU, network, and NVMe (`1591b4c`). `check-rebar.ps1` reports Resizable BAR across silicon, firmware, and driver (`8afbcd9`). `check-directstorage.ps1` reports the four DirectStorage prerequisites (NVMe, Windows build, DX12 Ultimate, discrete GPU) (`d9723fc`). `check-pagefile.ps1` reports the current pagefile and a sizing recommendation (`ee5c091`). `check-cpu-stress.ps1`, `check-gpu-stress.ps1`, and `check-ram.ps1` inventory CPU, GPU, and DIMM state and detect installed stress tools without launching them (`5ef034c`).
+- **Telemetry pairs.** Per-component toggles replace the bundled `privacy-telemetry.reg` path. Service / policy / SQM: `disable-diagtrack.ps1` / `enable-diagtrack.ps1`, `disable-allow-telemetry.ps1` / `enable-allow-telemetry.ps1`, `disable-ceip.ps1` / `enable-ceip.ps1` (`356618a`). Further pairs: Cortana, Edge prefetch, Start web search, activity history, and advertising ID (`12b8941`). Each pair is manifest-tracked.
+- **Pagefile.** `5 registry tweaks/individual/configure-pagefile.ps1` and `revert-pagefile.ps1` (`65f8dd4`). Configure captures a sidecar, turns off `AutomaticManagedPagefile`, and sets Initial = installed RAM × 1.0 and Maximum = installed RAM × 1.5 on `%SystemDrive%\pagefile.sys`. Tier: Advanced. Reboot required. Revert restores the sidecar, or automatic management when the sidecar is missing.
+- **RSC / NDIS.** `7 network/disable-rsc.ps1` / `enable-rsc.ps1` and `disable-ndis-coalescing.ps1` / `enable-ndis-coalescing.ps1` (`c847c93`). Receive Segment Coalescing and NDIS IRQ-coalescing toggles, sidecar restore, live apply (no reboot). Anti-cheat impact: none.
+- **External-tool launchers.** `13 external tools/launch-shutup10.ps1` (O&O ShutUp10++), `launch-autoruns.ps1` (Sysinternals Autoruns), and `launch-device-cleanup.ps1` (DeviceCleanup) (`7f400b9`). Each downloads at runtime and checks the Authenticode publisher against `versions.json`, then aborts on mismatch. Nothing is vendored. Launcher category `[13] External tools`.
+- **Site deploy.** Landing page restored under `site/` and published by `.github/workflows/deploy-site.yml` to the Cloudflare Pages project `tweakeazy` (`128d8ff`). Path-filtered, no build step. Live URL recorded in `site/README.md`: `https://tweakeazy-site.cohencool.workers.dev` (`6ddeef1`).
+
+Verify: entries matched to `git log` on `main` after `f8663e2` (subjects and paths for the six areas above). Docs-only. No script behavior change, so the Windows runtime checklist does not apply.
+
 ## [1.0.0] — 2026-05-07
 
 First public release. The toolkit went through three predecessor passes (FR33THY integration + bug audit, codex verification + discovery, cleanup + launcher redesign) and a final production-readiness audit before this tag.
