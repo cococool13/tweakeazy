@@ -50,10 +50,21 @@ const pathData = {
 };
 
 const header = document.querySelector(".site-header");
+const menuToggle = document.getElementById("menu-toggle");
+const primaryNav = document.getElementById("primary-nav");
 const toast = document.querySelector(".toast");
 const pathTabs = Array.from(document.querySelectorAll(".path-tab"));
 const filterButtons = Array.from(document.querySelectorAll(".filter-button"));
 const tweakCards = Array.from(document.querySelectorAll(".tweak-card"));
+
+const setMenuOpen = (open) => {
+  header.dataset.menuOpen = String(open);
+  if (menuToggle) {
+    menuToggle.setAttribute("aria-expanded", String(open));
+  }
+};
+
+const closeMenu = () => setMenuOpen(false);
 
 const showToast = (message) => {
   toast.textContent = message;
@@ -76,17 +87,7 @@ const copyText = async (id) => {
     await navigator.clipboard.writeText(text);
     showToast("Copied command.");
   } catch {
-    const field = document.createElement("textarea");
-    field.value = text;
-    field.setAttribute("readonly", "");
-    field.style.position = "fixed";
-    field.style.left = "-999px";
-    document.body.append(field);
-    field.select();
-
-    const copied = document.execCommand("copy");
-    field.remove();
-    showToast(copied ? "Copied command." : "Copy failed. Select the command manually.");
+    showToast("Copy failed. Select the command manually.");
   }
 };
 
@@ -130,6 +131,23 @@ const filterTweaks = (filter) => {
 };
 
 document.addEventListener("click", (event) => {
+  if (menuToggle && (event.target === menuToggle || menuToggle.contains(event.target))) {
+    setMenuOpen(header.dataset.menuOpen !== "true");
+    return;
+  }
+
+  const navLink = event.target.closest(".nav-links a");
+  if (navLink) {
+    closeMenu();
+  }
+
+  if (
+    header.dataset.menuOpen === "true" &&
+    !event.target.closest(".nav-pill")
+  ) {
+    closeMenu();
+  }
+
   const copyButton = event.target.closest("[data-copy]");
   if (copyButton) {
     copyText(copyButton.dataset.copy);
@@ -145,6 +163,18 @@ document.addEventListener("click", (event) => {
   const filter = event.target.closest("[data-filter]");
   if (filter) {
     filterTweaks(filter.dataset.filter);
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeMenu();
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (window.matchMedia("(min-width: 1021px)").matches) {
+    closeMenu();
   }
 });
 
