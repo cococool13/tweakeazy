@@ -1,8 +1,8 @@
 # ============================================================
 # Show System Summary — Hardware + Windows baseline
 # Windows 11 Gaming Optimization Guide
-# Inspired by: FR33THYFR33THY/Ultimate — 1 Check/* (folder concept)
-# Copyright FR33THY (MIT) for the category structure
+# Source: FR33THYFR33THY/Ultimate — read-only machine baseline.
+# Copyright FR33THY (MIT) for the category idea.
 # ============================================================
 # Tier: Safe (read-only)
 #
@@ -10,12 +10,12 @@
 # to be (or has been) applied to. Pulls from Get-CimInstance + a
 # few targeted registry reads. No manifest writes. No mutations.
 #
-# This is the seed script for the new 1 Check/ folder ported from
-# FR33THY/Ultimate. The folder will grow to include space/RAM/GPU
-# checks, CPU/RAM/GPU stress-test wrappers (download external tools
-# with SHA-256 verify), HWiNFO launcher, and the BIOS guide.
+# Lives in launcher category [11] Hardware checks
+# (folder "11 hardware checks"). Siblings in that folder are
+# check-storage.ps1 and check-uwp-apps.ps1. CPU, GPU, and RAM
+# audits live under launcher [12] Hardware (folder "12 hardware").
 #
-# Run from the launcher [1] submenu or directly.
+# Run from the launcher [11] submenu or directly.
 # ============================================================
 
 . "$PSScriptRoot\..\lib\toolkit-state.ps1"
