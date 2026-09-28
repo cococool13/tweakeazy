@@ -11,8 +11,8 @@
 #                                 no side-effects via dry-run scope
 #
 # All tests are macOS-runnable (parser-only / static-analysis style).
-# Tests that require Windows registry / services are tagged
-# 'WindowsOnly' and skipped when -not $IsWindows.
+# PS 5.1 compatibility is the PS51 AST invariant in
+# tests/invariants/ps51-load-path.Tests.ps1.
 # ============================================================
 
 $script:RepoRoot = Split-Path -Parent $PSScriptRoot

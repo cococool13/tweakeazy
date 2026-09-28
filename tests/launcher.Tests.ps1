@@ -14,8 +14,8 @@
       - Apply-All wiring includes the IncludeSecurityTradeoffs prompt
       - Admin refusal short-circuit present
 
-    Runtime tests (actual menu rendering, key bindings) are Windows-
-    only and live under tests/integration/.
+    These tests are AST-only. Menu rendering is covered by
+    MANUAL-TEST-CHECKLIST.md on a Windows 11 machine.
 #>
 
 BeforeDiscovery {
