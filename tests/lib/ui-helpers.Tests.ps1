@@ -6,8 +6,7 @@
 
 .DESCRIPTION
     Validates the UI-* helper surface that ~75 scripts dot-source.
-    AST-only — runtime tests (actual Write-Host capture, color codes)
-    live in tests/integration/ tagged 'WindowsOnly'.
+    AST-only. Host color and Write-Host behavior are outside this file.
 
 .NOTES
     Test rig: tests/_common.ps1 provides shared helpers.

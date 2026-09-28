@@ -6,8 +6,8 @@
 
 .DESCRIPTION
     Validates the TRIM-check + repair script's surface contract.
-    Runtime tests (actually toggling fsutil) are Windows-only and
-    live under tests/integration/ tagged 'WindowsOnly'.
+    Static-only. fsutil behavior is outside this file. A Windows
+    Sandbox config lives at tests/sandbox/check-storage.wsb.
 #>
 
 BeforeAll {

@@ -6,8 +6,8 @@
 
 .DESCRIPTION
     Validates the vendor-detection + adapter-resolution surface that
-    every 6 gpu/* script depends on. Static-only — actual PnP probing
-    is Windows-only and lives in tests/integration/.
+    every 6 gpu/* script depends on. Static-only. PnP probing is
+    outside this file.
 #>
 
 BeforeDiscovery {
