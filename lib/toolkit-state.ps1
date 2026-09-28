@@ -518,9 +518,13 @@ function Initialize-ToolkitState {
     # explicitly (the second call is a no-op).
     Write-ToolkitScriptStart -SkipFrames 2
 
-    # Preserve captured before-state once a manifest exists. Older callers used
-    # -ForceNew during apply, which could destroy the only reliable revert data.
-    if (Test-Path $script:ToolkitStateFile) {
+    # Preserve captured before-state once a manifest exists. Apply and the
+    # other mutators call this without -ForceNew so a re-run cannot wipe the
+    # only reliable revert data. -ForceNew is the launcher [B] regenerate
+    # path: Invoke-RegenerateBaseline confirms with YES, then asks for a new
+    # manifest. The switch used to be accepted and ignored, so [B] reported
+    # success while the old snapshots stayed on disk.
+    if ((Test-Path $script:ToolkitStateFile) -and -not $ForceNew) {
         # ConvertFrom-Json -Depth is PS 6.2+; inbox 5.1 only has -InputObject.
         $script:ToolkitState = Get-Content $script:ToolkitStateFile -Raw | ConvertFrom-Json
         return $script:ToolkitState

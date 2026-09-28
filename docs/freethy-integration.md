@@ -17,7 +17,7 @@ This is the canonical record of which FR33THY artifacts were ported into this to
 | `1 Check/1-9 *.ps1` | .ps1 | Diagnostic checks (disk space, RAM, GPU, BIOS, CPU/RAM/GPU stress tests, HWInfo) | Partial — `BIOS-CHECKLIST.md` already references diagnostics | Decline; document tools in BIOS appendix | `BIOS-CHECKLIST.md` |
 | `2 Refresh/1-7 *.ps1` | .ps1 | Factory reset, autounattend.xml, reinstall, network driver bootstrap | No (out of scope — bare-metal flow) | Decline | `KNOWN-ISSUES.md` |
 | `3 Setup/1 BitLocker.ps1` | .ps1 | BitLocker disable | No | Decline (security-sensitive, manual decision) | `KNOWN-ISSUES.md` |
-| `3 Setup/2 Memory Compression.ps1` | .ps1 | `Disable-MMAgent -MemoryCompression` | No | Merge into `configure-mmagent.ps1` (Phase B group 1) | `5 registry tweaks/individual/configure-mmagent.ps1` |
+| `3 Setup/2 Memory Compression.ps1` | .ps1 | `Disable-MMAgent -MemoryCompression` | Yes | **Port** | `5 registry tweaks/individual/configure-mmagent.ps1` |
 | `3 Setup/3-12 *.ps1` | .ps1 | Convert Home→Pro, language/region, Edge/Store settings, Updates Pause | Partial (Updates Pause overlaps `disable-windows-update.ps1`) | Decline rest | `KNOWN-ISSUES.md` |
 | `4 Installers/*` | .ps1 | MSI Afterburner / NV Profile Inspector / MoreClockTool / CRU installers | No | Decline (no bundled binaries) | `KNOWN-ISSUES.md` |
 | `5 Graphics/1 Driver Clean.ps1` | .ps1 | DDU clean | Yes (`DduManual.ps1`, `DduAuto.ps1`) | Decline | — |
@@ -32,7 +32,7 @@ This is the canonical record of which FR33THY artifacts were ported into this to
 | `5 Graphics/10 DirectX.ps1` | .ps1 | DirectX runtime install | Yes (`0 prerequisites/install-runtimes.ps1`) | Decline | — |
 | `5 Graphics/11 C++.ps1` | .ps1 | VC++ redist install | Yes (`0 prerequisites/install-runtimes.ps1`) | Decline | — |
 | `5 Graphics/12 Resolution Refresh Rate.ps1` | .ps1 | Manual UI step | No | Decline (manual) | `BIOS-CHECKLIST.md` |
-| `5 Graphics/13 Hags Windowed.ps1` | .ps1 | Manual UI step | Partial (HAGS already enabled) | Decline (manual) | — |
+| `5 Graphics/13 Hags Windowed.ps1` | .ps1 | Disable HAGS for windowed / borderless (`DirectFlipDisabled`) | Yes | **Port** | `5 registry tweaks/individual/disable-hags-windowed.reg` |
 | `6 Windows/1 Start Menu Taskbar.ps1` | .ps1 | Start/taskbar config | Partial (we cover taskbar basics) | Decline (preference, not perf) | — |
 | `6 Windows/2 Start Menu Layout.ps1` | .ps1 | Start menu layout JSON | No | Decline (preference) | — |
 | `6 Windows/3 Start Menu Shortcuts.ps1` | .ps1 | Start shortcuts | No | Decline (preference) | — |
@@ -59,19 +59,19 @@ This is the canonical record of which FR33THY artifacts were ported into this to
 | `6 Windows/30 Timer Resolution.ps1` | .ps1 | `GlobalTimerResolutionRequests` policy | Yes (covered by `install-timer-resolution-service.ps1`) | Decline | — |
 | `6 Windows/31 UAC.ps1` | .ps1 | Lower UAC | No | Decline (security) | `KNOWN-ISSUES.md` |
 | `6 Windows/32 Core Isolation.ps1` | .ps1 | HVCI off | Yes (`8 security vs performance/configure-vbs.ps1`) | Decline | — |
-| `6 Windows/33 Defender Optimize.ps1` | .ps1 | Defender lockdown | Partial (we have exclusions) | Decline (crosses safety line) | `KNOWN-ISSUES.md` |
+| `6 Windows/33 Defender Optimize.ps1` | .ps1 | Wholesale Defender disable | Yes (opt-in) | **Port** | `8 security vs performance/disable-defender-wholesale.ps1` |
 | `6 Windows/34 Autoruns Startup Tasks & Apps Check.ps1` | .ps1 | Diagnostic | No | Decline (diagnostic) | — |
 | `6 Windows/35 Cleanup.ps1` | .ps1 | Temp cleanup | Yes (`9 cleanup/cleanup-temp.{bat,ps1}`) | Decline | — |
 | `6 Windows/36 Restore Point.ps1` | .ps1 | Restore point | Yes (`1 backup/create-backup.ps1`) | Decline | — |
 | `7 Hardware/1-8 *.ps1` | .ps1 | Polling rate / monitor tests / build guides | No | Decline (diagnostic / external) | `BIOS-CHECKLIST.md` |
-| `8 Advanced/1 Defender.ps1` | .ps1 | Defender disable | Partial (we have exclusions) | Decline (overlap with `6 Windows/33`) | `KNOWN-ISSUES.md` |
+| `8 Advanced/1 Defender.ps1` | .ps1 | Wholesale Defender disable | Yes (same script as `6 Windows/33`) | **Port** | `8 security vs performance/disable-defender-wholesale.ps1` |
 | `8 Advanced/2 Firewall.ps1` | .ps1 | Firewall config | No | Decline (security) | `KNOWN-ISSUES.md` |
 | `8 Advanced/3 Spectre Meltdown.ps1` | .ps1 | Disable speculative-execution mitigations | No | **Port** as Security Trade-off | `5 registry tweaks/individual/disable-spectre-meltdown.ps1` |
 | `8 Advanced/4 Data Execution Prevention.ps1` | .ps1 | DEP `bcdedit /set nx OptOut` | No | **Port** as Security Trade-off | `8 security vs performance/disable-dep.ps1` |
 | `8 Advanced/5 File Download Security Warning.ps1` | .ps1 | Disable Mark of the Web SmartScreen warnings | No | Decline (security) | — |
-| `8 Advanced/6 MMAgent Features.ps1` | .ps1 | Page combining / OperationAPI / SuperFetch | No | **Port** | `5 registry tweaks/individual/configure-mmagent.ps1` |
-| `8 Advanced/7 ReBar Force.ps1` | .ps1 | Force-enable Resizable BAR via NVIDIA Profile Inspector | Partial (BIOS-CHECKLIST covers ReBAR) | Decline (relies on bundled tool) | `BIOS-CHECKLIST.md` |
-| `8 Advanced/8 Smt Ht.ps1` | .ps1 | Disable SMT/HT | No | Decline (workload-specific, breaks productivity) | `KNOWN-ISSUES.md` |
+| `8 Advanced/6 MMAgent Features.ps1` | .ps1 | Page combining / OperationAPI / ApplicationPreLaunch | Yes | **Port** | `5 registry tweaks/individual/configure-mmagent.ps1` |
+| `8 Advanced/7 ReBar Force.ps1` | .ps1 | Force Resizable BAR (`HwUMAEnable=1`) | Yes (opt-in) | **Port** | `6 gpu/force-rebar.ps1` |
+| `8 Advanced/8 Smt Ht.ps1` | .ps1 | Disable SMT/HT | Yes (opt-in) | **Port** | `8 security vs performance/disable-smt-ht.ps1` |
 | `8 Advanced/9 Core 1 Thread 1.ps1` | .ps1 | Single-core CPU affinity for explorer | No | Decline (breaks multithreading) | `KNOWN-ISSUES.md` |
 | `8 Advanced/10 Priority.ps1` | .ps1 | Process priority registry | Partial (we set Game priority MMCSS) | Decline (overlap) | — |
 | `8 Advanced/11 Mpo.ps1` | .ps1 | DWM Multiplane Overlay disable | No | **Port** | `5 registry tweaks/individual/disable-mpo.ps1` |

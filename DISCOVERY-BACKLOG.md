@@ -172,10 +172,16 @@ Status values:
 ### Disable Core Security Features Beyond Existing VBS / DEP / Spectre Choices
 
 - Sources: <https://github.com/Atlas-OS/Atlas>, <https://github.com/FR33THYFR33THY/Ultimate>
-- Mechanism: disable BitLocker, firewall, driver signing, SmartScreen / Mark-of-the-Web, or Defender outright.
+- Mechanism: disable BitLocker, firewall, driver signing, or SmartScreen / Mark-of-the-Web.
 - Tier: `Security Trade-off`
-- Proposed path: none
-- Proof not covered: some adjacent choices exist, but these exact aggressive disables are intentionally absent.
-- Risk note: these are clear attack-surface increases and do not fit default-on gaming optimization.
+- Proposed path: none for the items above.
+- Shipped, not this rejection:
+  - Wholesale Defender disable: `8 security vs performance/disable-defender-wholesale.ps1` (pair `enable-defender-wholesale.ps1`). Opt-in only.
+  - SMT / Hyper-Threading disable: `8 security vs performance/disable-smt-ht.ps1` (pair `enable-smt-ht.ps1`). Opt-in only.
+  - ReBAR force: `6 gpu/force-rebar.ps1`. Read-only check: `12 hardware/check-rebar.ps1`.
+  - HAGS windowed / borderless: `5 registry tweaks/individual/disable-hags-windowed.reg` (pair `revert-hags-windowed.reg`).
+  - MMAgent memory compression (with page combining, OperationAPI, ApplicationPreLaunch): `5 registry tweaks/individual/configure-mmagent.ps1` (pair `revert-mmagent.ps1`).
+- Proof not covered: BitLocker, firewall, driver-signing bypass, and SmartScreen / Mark-of-the-Web disables are still absent. The five scripts above are in the tree.
+- Risk note: the remaining items are clear attack-surface increases and do not fit default-on gaming optimization. Wholesale Defender and SMT/HT are the same class of risk and stay off the default Apply path.
 - Rubric: Real=yes, Current=yes, Not covered=partial, Automatable=yes, Reversible=partial, Tierable=yes.
-- Status: `Rejected`
+- Status: `Rejected` for BitLocker, firewall, driver signing, and SmartScreen / Mark-of-the-Web.
