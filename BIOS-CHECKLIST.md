@@ -43,7 +43,7 @@ Allows the CPU to access the full GPU VRAM at once instead of in 256MB chunks.
 - [ ] Enable **Above 4G Decoding** (required first)
 - [ ] Enable **Resizable BAR** (may be called Re-Size BAR Support)
 - [ ] **Disable CSM** (Compatibility Support Module) — required for ReBAR to work
-- [ ] Verify in Windows: GPU-Z or NVIDIA Control Panel > System Info > "Resizable BAR: Yes"
+- [ ] Verify in Windows: `12 hardware/check-rebar.ps1` (read-only), GPU-Z, or NVIDIA Control Panel > System Info > "Resizable BAR: Yes". Opt-in force when firmware enumerated it off: `6 gpu/force-rebar.ps1`.
 
 > **Note:** Requires NVIDIA RTX 3000+, AMD RX 5000+, or Intel Arc. Older GPUs don't support it.
 
@@ -135,7 +135,7 @@ Saves IRQ/DMA resources and can reduce latency:
 1. Save and exit BIOS (usually F10)
 2. Let Windows boot normally
 3. Verify RAM speed: **Task Manager > Performance > Memory** (should show rated speed)
-4. Verify Resizable BAR: **GPU-Z** or driver control panel
+4. Verify Resizable BAR: `12 hardware/check-rebar.ps1`, **GPU-Z**, or the driver control panel. Opt-in force: `6 gpu/force-rebar.ps1`.
 5. If system won't boot: clear CMOS (reset to defaults) and try again with fewer changes
 
 ---
@@ -172,5 +172,5 @@ The Codex audit also added software-only Edge background and NTFS last-access tw
 After applying BIOS changes:
 
 1. Verify RAM speed: **Task Manager > Performance > Memory**. Should show rated speed, not 2133 / 2400 MHz default.
-2. Verify ReBAR: **GPU-Z** main tab, look for `Resizable BAR: Enabled`.
+2. Verify ReBAR: `12 hardware/check-rebar.ps1`, or **GPU-Z** main tab (`Resizable BAR: Enabled`). Opt-in force: `6 gpu/force-rebar.ps1`.
 3. Profile DPC latency: **LatencyMon** for 5 minutes idle, then 5 minutes in-game. Anything > 1000 µs warrants driver investigation.

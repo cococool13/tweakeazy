@@ -1,6 +1,16 @@
 # Production Readiness Pass
 
-You are doing the final pass on this toolkit. Three predecessor agents have run before you:
+> **HISTORICAL — DO NOT RUN.**
+>
+> This prompt already ran for the v1.0.0 readiness pass. It is an archive, not a task. Do not execute any phase below. Do not start at Phase 0. Do not tag a release from this file.
+>
+> These actions are cancelled, even where the archive text below still mentions them:
+>
+> - Do not delete `website/` or `site/`. The landing site lives in `site/` and stays.
+> - Do not remove site deploy workflows. `.github/workflows/deploy-site.yml` stays.
+> - Do not read, write, or recreate `CHANGES.md`, `CODEX-AUDIT.md`, `CLEANUP.md`, `CURSOR-AUDIT.md`, `SESSION-REPORT.md`, or `prompts/README.md`. Those audit docs were folded into `KNOWN-ISSUES.md` and `CHANGELOG.md` and must not be recreated (`CLAUDE.md`).
+
+Archived task (already finished): the v1.0.0 production-readiness pass. Three predecessor agents had already run. The filenames below are a record of what those passes wrote. Several were later removed. Do not recreate them.
 
 1. **Claude — FR33THY integration + bug audit.** Output: `CHANGES.md`, `KNOWN-ISSUES.md`, `docs/freethy-integration.md`.
 2. **Codex — verification + discovery.** Output: `CODEX-AUDIT.md`, `DISCOVERY-BACKLOG.md`. Branch: `codex/audit-extend-win11-toolkit` (26 commits) merged to main.
@@ -14,7 +24,7 @@ Current state:
 - New script-scoped variable `$script:ToolkitLogRoot` added to `lib/toolkit-state.ps1`.
 - Documented design deviation: no `3 privacy/` top-level folder; privacy tweaks live in `5 registry tweaks/`.
 
-Your job: take this from "feature-complete" to "production-ready, no mistakes." Verify every claim from the three predecessor reports holds. Hunt regressions from the cleanup. Validate runtime (or queue a precise manual test). Cut a release.
+That pass's job (already finished; do not repeat): take the toolkit from "feature-complete" to "production-ready." Do not cut another release from this file.
 
 **Do not introduce new features.** Polish and verify only. If you find something tempting to add, log it in `KNOWN-ISSUES.md` for the next release.
 
@@ -29,7 +39,7 @@ Your job: take this from "feature-complete" to "production-ready, no mistakes." 
 
 ## Phase 0 — Ground
 
-1. Read in full: `CHANGES.md`, `CODEX-AUDIT.md`, `DISCOVERY-BACKLOG.md`, `CLEANUP.md`, `KNOWN-ISSUES.md`, `GUIDE.md`, `BIOS-CHECKLIST.md`, `prompts/README.md`.
+1. Do not read or recreate `CHANGES.md`, `CODEX-AUDIT.md`, `CLEANUP.md`, or `prompts/README.md`. They were removed. Living record: `KNOWN-ISSUES.md`, `CHANGELOG.md`, `GUIDE.md`, `BIOS-CHECKLIST.md`. `DISCOVERY-BACKLOG.md` may still exist; this prompt is not a reason to edit it.
 2. Read end-to-end: `lib/toolkit-state.ps1`, `APPLY-EVERYTHING.ps1`, `REVERT-EVERYTHING.ps1`, `10 verify/verify-tweaks.ps1`, `launcher.ps1`.
 3. Output current commit hash, tracked file count, and active branch before doing anything else.
 
@@ -56,10 +66,7 @@ The previous pass merged 26 commits and rewrote a 562-line launcher. Confirm not
    ```
    Confirm `$script:ToolkitLogRoot` is consumed where it should be (launcher's `[L]` View recent log) and that nothing else relied on a previous export shape.
 
-4. **Website residue** (should be zero hits):
-   ```bash
-   grep -rn "website\|TweakEazy\|FILE_LINKS\|repoFile" --include="*.md" --include="*.ps1" --include="*.bat" --include="*.yml"
-   ```
+4. **Old `website/` residue** — historical check only. That Next.js tree is already gone. Do not delete `site/`. Do not remove `.github/workflows/deploy-site.yml`. Do not treat files under `site/` as residue to delete.
 
 5. **Tier string consistency**:
    ```bash
@@ -114,7 +121,7 @@ Record which path was taken in `PRODUCTION-READY.md`.
 
 1. **Version**: pick a real version. First public release → `v1.0.0`. Otherwise follow semver from prior tags (`git tag -l`).
 2. **Single source of truth**: store version in `VERSION` file at repo root or `lib/version.ps1` exporting `$Toolkit_Version = '1.0.0'`. `launcher.ps1` header reads from this — replace any hardcoded version string.
-3. **`CHANGELOG.md`** at repo root. Conventional format (Keep a Changelog spec). Roll up `CHANGES.md`, `CODEX-AUDIT.md`, `CLEANUP.md` into user-facing entries by category: `Added / Changed / Fixed / Removed`. Keep the source audit docs as-is for the historical record — `CHANGELOG.md` is the user-facing summary.
+3. **`CHANGELOG.md`** at repo root already exists. Do not roll removed audit docs back into the tree. `CHANGES.md`, `CODEX-AUDIT.md`, and `CLEANUP.md` were folded into `CHANGELOG.md` and `KNOWN-ISSUES.md` and must not be recreated.
 4. **`README.md`** sweep:
    - Title, one-line description.
    - Screenshot of the launcher (place in `docs/img/launcher.png`; if not yet captured, leave a placeholder note in `KNOWN-ISSUES.md`).
@@ -172,7 +179,7 @@ If anything in Phases 1–3 is unresolved, safety branches stay until the toolki
 - Do not modify `lib/toolkit-state.ps1` helper signatures. The cleanup pass added `$script:ToolkitLogRoot`; further changes are scope creep.
 - One commit per logical change. The tag is the final action.
 - If you find a discovery item not in `DISCOVERY-BACKLOG.md` that's worth adding, log it in `KNOWN-ISSUES.md` for the next release. Do not implement.
-- Do not delete or rewrite any predecessor report (`CHANGES.md`, `CODEX-AUDIT.md`, `CLEANUP.md`). They are the historical record. `CHANGELOG.md` is the new user-facing summary; the audit docs stay alongside it.
+- Do not recreate `CHANGES.md`, `CODEX-AUDIT.md`, `CLEANUP.md`, `CURSOR-AUDIT.md`, `SESSION-REPORT.md`, or `prompts/README.md`. They were folded into `KNOWN-ISSUES.md` and `CHANGELOG.md` and removed.
 - If something is genuinely ambiguous (release version number, license choice, whether a deviation is acceptable), pick the most defensible default, document the choice in `PRODUCTION-READY.md` under `## Decisions`, and continue. Do not stop and ask.
 
-Begin with Phase 0. Output the current commit hash, tracked file count, and active branch as your first action — do not run any verification until that's on record.
+Do not begin. This file is historical.
