@@ -191,6 +191,18 @@ Describe 'APPLY-EVERYTHING.ps1 — surface contract' {
         }
     }
 
+    Context 'Manifest init preserves revert data' {
+        It 'calls Initialize-ToolkitState without -ForceNew' {
+            $calls = @($script:Ast.FindAll({
+                    param($n)
+                    $n -is [System.Management.Automation.Language.CommandAst] -and
+                    $n.GetCommandName() -eq 'Initialize-ToolkitState'
+                }, $true))
+            $calls.Count | Should -Be 1
+            $calls[0].Extent.Text | Should -Not -Match 'ForceNew'
+        }
+    }
+
     Context 'Admin self-check (CLAUDE.md invariant #6)' {
         It 'calls UI-RequireAdmin near the top' {
             $head = ($script:Content -split "`n" | Select-Object -First 80) -join "`n"
