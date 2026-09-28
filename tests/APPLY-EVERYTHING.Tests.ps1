@@ -21,9 +21,8 @@
       - All Set-TrackedRegistry / Set-TrackedService wrappers used
         downstream actually exist
 
-    Runtime tests (actual registry writes) are Windows-only and live
-    under tests/integration/. tests/manual/APPLY-EVERYTHING.md is the
-    human-runner checklist for what can't be Pester'd statically.
+    Registry writes are outside this file. The human checklist is
+    tests/manual/APPLY-EVERYTHING.md.
 
 .NOTES
     # CROSS-PLATFORM-NOTE
@@ -189,6 +188,18 @@ Describe 'APPLY-EVERYTHING.ps1 — surface contract' {
             $head = ($script:Content -split "`n" | Select-Object -First 50) -join "`n"
             $head | Should -Match 'BattlEye'
             $head | Should -Match 'EAC'
+        }
+    }
+
+    Context 'Manifest init preserves revert data' {
+        It 'calls Initialize-ToolkitState without -ForceNew' {
+            $calls = @($script:Ast.FindAll({
+                    param($n)
+                    $n -is [System.Management.Automation.Language.CommandAst] -and
+                    $n.GetCommandName() -eq 'Initialize-ToolkitState'
+                }, $true))
+            $calls.Count | Should -Be 1
+            $calls[0].Extent.Text | Should -Not -Match 'ForceNew'
         }
     }
 

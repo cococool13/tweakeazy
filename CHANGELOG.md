@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased] — continuous-improvement loop (in progress)
 
+### Fixed
+- `.github/workflows/ci.yml` and `tools/Invoke-ToolkitGate.ps1` described `windows-latest` as running `WindowsOnly` tests. No test uses that tag, `tests/integration/` does not exist, and both jobs use `pwsh` (PowerShell 7). Comments in the affected test headers now say the same. The failure artifact upload of `.psscriptanalyzer-baseline.json` is removed; the gate does not rewrite that 2026-05-24 snapshot.
+
 Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clean a hard precondition for every script. Baseline at session start: 1537 PSScriptAnalyzer findings (3 Error, 1415 Warning, 119 Info).
 
 ### Removed
@@ -23,6 +26,7 @@ Started 2026-05-24. Quality-gate-driven pass focused on making the analyzer-clea
 - Defense-in-depth enforcement of `$neverRemove` safety list in `9 cleanup/debloat.ps1`. Previously declared but never used (latent safety gap exposed by `PSUseDeclaredVarsMoreThanAssignments`). (`f71d130`)
 
 ### Fixed
+- `Initialize-ToolkitState -ForceNew` now replaces an existing manifest. Launcher `[B]` already confirms with `YES` before passing the switch; the parameter was accepted and ignored, so the success line claimed prior snapshots were gone while the old file remained. `APPLY-EVERYTHING.ps1` still calls `Initialize-ToolkitState` with no `-ForceNew`.
 - PowerShell 5.1 load-path: drop `ConvertFrom-Json -Depth` (PS 6.2+) in `Get-ToolkitState` / `Initialize-ToolkitState` / `Get-ToolkitManifest`; replace 3-arg `Join-Path` in `tools/Start-SandboxSession.ps1` with two 2-arg calls. AST invariant in `tests/invariants/ps51-load-path.Tests.ps1`.
 - 3 `PSScriptAnalyzer` Error-severity findings — replaced `Test-Connection -ComputerName "8.8.8.8"` with `[System.Net.NetworkInformation.Ping]` in `lib/download-helpers.ps1`, `lib/ui-helpers.ps1`, `0 prerequisites/install-runtimes.ps1`. Sidesteps a false-positive rule AND drops Cim warmup latency from ~200–500ms to ~5–50ms. (`4e993a9`)
 - 26 .ps1 files reformatted via `Invoke-Formatter` — clears 337 whitespace/indent warnings in one verified-balanced (216/216 line) pass. (`bda742c`)
@@ -278,6 +282,19 @@ offenders ($matches, $pid, $profile, $error, $host) listed. (`92e9c3c`)
 | After MPO WDDM gate                  | 0 | 0 | 504 | 23 | 11.1% |
 | After HAGS pair                      | 0 | 0 | 518 | 23 | 11.1% |
 | After CLAUDE.md rule codification    | 0 | 0 | 518 | 23 | 11.1% |
+
+### Added
+
+Catch-up for work shipped on `main` after the 2026-05-24 fourth loop (`f8663e2`). Gate tables above are unchanged.
+
+- **Hardware audits (read-only).** `12 hardware/check-msi-mode.ps1` reports MSI vs line-based interrupts for GPU, network, and NVMe (`1591b4c`). `check-rebar.ps1` reports Resizable BAR across silicon, firmware, and driver (`8afbcd9`). `check-directstorage.ps1` reports the four DirectStorage prerequisites (NVMe, Windows build, DX12 Ultimate, discrete GPU) (`d9723fc`). `check-pagefile.ps1` reports the current pagefile and a sizing recommendation (`ee5c091`). `check-cpu-stress.ps1`, `check-gpu-stress.ps1`, and `check-ram.ps1` inventory CPU, GPU, and DIMM state and detect installed stress tools without launching them (`5ef034c`).
+- **Telemetry pairs.** Per-component toggles replace the bundled `privacy-telemetry.reg` path. Service / policy / SQM: `disable-diagtrack.ps1` / `enable-diagtrack.ps1`, `disable-allow-telemetry.ps1` / `enable-allow-telemetry.ps1`, `disable-ceip.ps1` / `enable-ceip.ps1` (`356618a`). Further pairs: Cortana, Edge prefetch, Start web search, activity history, and advertising ID (`12b8941`). Each pair is manifest-tracked.
+- **Pagefile.** `5 registry tweaks/individual/configure-pagefile.ps1` and `revert-pagefile.ps1` (`65f8dd4`). Configure captures a sidecar, turns off `AutomaticManagedPagefile`, and sets Initial = installed RAM × 1.0 and Maximum = installed RAM × 1.5 on `%SystemDrive%\pagefile.sys`. Tier: Advanced. Reboot required. Revert restores the sidecar, or automatic management when the sidecar is missing.
+- **RSC / NDIS.** `7 network/disable-rsc.ps1` / `enable-rsc.ps1` and `disable-ndis-coalescing.ps1` / `enable-ndis-coalescing.ps1` (`c847c93`). Receive Segment Coalescing and NDIS IRQ-coalescing toggles, sidecar restore, live apply (no reboot). Anti-cheat impact: none.
+- **External-tool launchers.** `13 external tools/launch-shutup10.ps1` (O&O ShutUp10++), `launch-autoruns.ps1` (Sysinternals Autoruns), and `launch-device-cleanup.ps1` (DeviceCleanup) (`7f400b9`). Each downloads at runtime and checks the Authenticode publisher against `versions.json`, then aborts on mismatch. Nothing is vendored. Launcher category `[13] External tools`.
+- **Site deploy.** Landing page restored under `site/` and published by `.github/workflows/deploy-site.yml` to the Cloudflare Pages project `tweakeazy` (`128d8ff`). Path-filtered, no build step. Live URL recorded in `site/README.md`: `https://tweakeazy-site.cohencool.workers.dev` (`6ddeef1`).
+
+Verify: entries matched to `git log` on `main` after `f8663e2` (subjects and paths for the six areas above). Docs-only. No script behavior change, so the Windows runtime checklist does not apply.
 
 ## [1.0.0] — 2026-05-07
 
