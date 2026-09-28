@@ -34,7 +34,8 @@
     user actually hits, but the text-scan invariant would still pass.
 
     Known-good exclusions: same as the static logging invariant
-    (DduManual.ps1 — own transcript path).
+    (currently none). DduManual.ps1 calls Initialize-ToolkitState
+    in the script-body try before the tracked driver-search write.
 
     Expected gap count: small. Most scripts already place
     Initialize-ToolkitState as a top-level statement; this invariant
@@ -50,7 +51,8 @@ BeforeDiscovery {
     . (Join-Path $PSScriptRoot '..' '..' 'profile/parts/toolkit-aware.ps1')
 
     $script:KnownExcluded = @(
-        'DduManual.ps1'  # Independent transcript path (see static invariant)
+        # DduManual.ps1 used to live here. Initialize-ToolkitState now
+        # sits in the script-body try, before the driver-search write.
     )
 
     # Gap-tracking. Same pattern as ShouldProcess / pair-restore: ship

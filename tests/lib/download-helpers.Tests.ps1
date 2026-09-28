@@ -23,6 +23,9 @@ BeforeDiscovery {
         @{ Name = 'Test-FileSha256' }
         @{ Name = 'Test-FileAuthenticode' }
         @{ Name = 'Ensure-7Zip' }
+        @{ Name = 'Set-DduDriverSearchPolicy' }
+        @{ Name = 'Restore-DduDriverSearchPolicy' }
+        @{ Name = 'Get-DduDriverSearchRestoreBlock' }
         @{ Name = 'Restore-DriverSearchPolicy' }
     )
 }
@@ -234,6 +237,87 @@ Describe 'lib/download-helpers.ps1 — surface + behavior contract' {
             }
             Test-FileAuthenticode -Path '/tmp/foo.exe' -ExpectedSignerCN 'NVIDIA Corporation' |
                 Should -BeFalse
+        }
+    }
+
+    Context 'DDU driver search policy is tracked and restored to the pre-DDU value' {
+        BeforeEach {
+            Mock Get-ToolkitState { $null }
+            Mock Initialize-ToolkitState { [pscustomobject]@{ registry = @{} } }
+            Mock Write-Info { }
+            Mock Set-ToolkitRegistryValue { }
+            Mock Remove-ItemProperty { }
+            Mock Test-Path { $true }
+        }
+
+        It 'Set-DduDriverSearchPolicy writes SearchOrderConfig=0 through reg:DriverSearchOrderConfig' {
+            Mock Get-ToolkitRegistryState {
+                [ordered]@{
+                    pathExists = $true
+                    valueExists = $true
+                    kind = 'DWord'
+                    value = 1
+                }
+            }
+            $prior = Set-DduDriverSearchPolicy
+            $prior.value | Should -Be 1
+            $prior.valueExists | Should -BeTrue
+            Should -Invoke Set-ToolkitRegistryValue -Times 1 -ParameterFilter {
+                $Id -eq 'reg:DriverSearchOrderConfig' -and
+                $Name -eq 'SearchOrderConfig' -and
+                [int64]$Value -eq 0 -and
+                $Type -eq 'DWord' -and
+                $Step -eq 'ddu'
+            }
+        }
+
+        It 'Restore-DduDriverSearchPolicy writes the previous value back through the same id' {
+            Restore-DduDriverSearchPolicy -ValueExisted $true -PreviousValue 1 -PreviousKind 'DWord'
+            Should -Invoke Set-ToolkitRegistryValue -Times 1 -ParameterFilter {
+                $Id -eq 'reg:DriverSearchOrderConfig' -and
+                [int64]$Value -eq 1 -and
+                $Type -eq 'DWord'
+            }
+            Should -Invoke Remove-ItemProperty -Times 0
+        }
+
+        It 'Restore-DduDriverSearchPolicy removes the value when it did not exist before DDU' {
+            Restore-DduDriverSearchPolicy -ValueExisted $false
+            Should -Invoke Remove-ItemProperty -Times 1 -ParameterFilter {
+                $Name -eq 'SearchOrderConfig'
+            }
+            Should -Invoke Set-ToolkitRegistryValue -Times 0
+        }
+
+        It 'restore block for a live DWORD quotes the prior value and does not force 1' {
+            $prior = [ordered]@{
+                pathExists = $true
+                valueExists = $true
+                kind = 'DWord'
+                value = 0
+            }
+            $block = Get-DduDriverSearchRestoreBlock -Prior $prior -LibPath 'C:\repo\lib\download-helpers.ps1'
+            $block | Should -Match 'Restore-DduDriverSearchPolicy -ValueExisted:\$true -PreviousValue 0 -PreviousKind ''DWord'''
+            $block.Contains('C:\repo\lib\download-helpers.ps1') | Should -BeTrue
+            $block | Should -Not -Match 'reg add'
+            $block | Should -Not -Match 'PreviousValue 1'
+        }
+
+        It 'restore block removes SearchOrderConfig when the prior value was absent' {
+            $prior = [ordered]@{
+                pathExists = $true
+                valueExists = $false
+                kind = $null
+                value = $null
+            }
+            $block = Get-DduDriverSearchRestoreBlock -Prior $prior -LibPath 'C:\repo\lib\download-helpers.ps1'
+            $block | Should -Match 'Restore-DduDriverSearchPolicy -ValueExisted:\$false'
+            $block | Should -Not -Match 'reg add'
+        }
+
+        It 'restore block is empty when DDU did not capture a prior snapshot' {
+            Get-DduDriverSearchRestoreBlock -Prior $null -LibPath 'C:\repo\lib\download-helpers.ps1' |
+                Should -Be ''
         }
     }
 }
