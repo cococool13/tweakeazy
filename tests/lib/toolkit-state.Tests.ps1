@@ -63,6 +63,16 @@ BeforeAll {
 
 Describe 'lib/toolkit-state.ps1 — surface contract' {
 
+    Context 'ForceNew is wired, not ignored' {
+        It 'Initialize-ToolkitState gates the existing-manifest return on -not ForceNew' {
+            $fn = $script:Functions | Where-Object Name -EQ 'Initialize-ToolkitState'
+            $fn | Should -Not -BeNullOrEmpty
+            $body = $fn.Body.Extent.Text
+            $body | Should -Match '\$ForceNew'
+            $body | Should -Match '-not\s+\$ForceNew'
+        }
+    }
+
     Context 'File health' {
         It 'parses without errors' {
             $tokens = $null
@@ -366,6 +376,29 @@ Describe 'lib/toolkit-state.ps1 — behavioral coverage push' {
             Set-Variable -Scope script -Name 'ToolkitState' -Value $null
             $second = Initialize-ToolkitState 6>$null
             ([datetime]$second.createdAt).ToString('o') | Should -Be $originalIso
+        }
+
+        It 'Initialize-ToolkitState -ForceNew replaces an existing manifest and drops prior snapshots' {
+            $first = Initialize-ToolkitState 6>$null
+            $first.notes = @('prior-snapshot-marker')
+            Save-ToolkitState
+            $originalIso = ([datetime]$first.createdAt).ToString('o')
+            Start-Sleep -Milliseconds 20
+            # Drop the in-memory cache so the next call must read the file.
+            Set-Variable -Scope script -Name 'ToolkitState' -Value $null
+
+            $replaced = Initialize-ToolkitState -ForceNew 6>$null
+            ([datetime]$replaced.createdAt).ToString('o') | Should -Not -Be $originalIso
+            $replaced.notes.Count | Should -Be 0
+            $replaced.steps.Count | Should -Be 0
+            $replaced.registry.Count | Should -Be 0
+            $replaced.context.systemName | Should -Be 'TEST-PC'
+
+            Set-Variable -Scope script -Name 'ToolkitState' -Value $null
+            $raw = Get-Content -LiteralPath $script:ToolkitStateFile -Raw
+            $raw | Should -Not -Match 'prior-snapshot-marker'
+            $fromDisk = Get-ToolkitState
+            ([datetime]$fromDisk.createdAt).ToString('o') | Should -Be (([datetime]$replaced.createdAt).ToString('o'))
         }
 
         It 'Get-ToolkitState returns $null when no manifest has been saved' {
