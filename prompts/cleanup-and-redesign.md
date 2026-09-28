@@ -1,18 +1,28 @@
 # Cleanup + Launcher Redesign
 
-You are doing four things, in this order: consolidate branches, delete the website, prune dead files, redesign `launcher.ps1`. Do each in its own commit cluster. Do not skip Phase 0.
+> **HISTORICAL — DO NOT RUN.**
+>
+> This prompt already ran before v1.0.0. It is an archive, not a task. Do not execute any phase below. Do not start at Phase 0.
+>
+> These actions are cancelled, even where the archive text below still mentions them:
+>
+> - Do not delete `website/` or `site/`. The landing site lives in `site/` and stays.
+> - Do not remove site deploy workflows. `.github/workflows/deploy-site.yml` stays.
+> - Do not read, write, or recreate `CHANGES.md`, `CODEX-AUDIT.md`, `CLEANUP.md`, `CURSOR-AUDIT.md`, `SESSION-REPORT.md`, or `prompts/README.md`. Those audit docs were folded into `KNOWN-ISSUES.md` and `CHANGELOG.md` and must not be recreated (`CLAUDE.md`).
+
+Archived task (already finished): consolidate branches, remove the old Next.js tree that used to live at `website/`, prune dead files, redesign `launcher.ps1`. Do not run it again.
 
 ## Phase 0 — Ground
 
 Read in this order:
 1. `git branch -a`, `git status`, `git log --oneline -50 --all`
-2. `CHANGES.md`, `KNOWN-ISSUES.md`, `CODEX-AUDIT.md` (if present), `prompts/README.md`
+2. Living docs only: `KNOWN-ISSUES.md` and `GUIDE.md`. Do not read or recreate `CHANGES.md`, `CODEX-AUDIT.md`, or `prompts/README.md`.
 3. Current `launcher.ps1` end-to-end. You're rewriting it — read what's there first.
 4. `lib/toolkit-state.ps1` for the manifest format. The new launcher reads from this.
 
 Output before doing anything destructive:
 - Branch list with one-line plan per branch (merge / delete / keep).
-- Count of files in `website/` you're about to delete.
+- The old `website/` tree is already gone. Do not delete `site/`.
 - Approximate count of dead-file candidates from Phase 3.
 
 ## Phase 1 — Branch consolidation
@@ -33,22 +43,11 @@ Goal: single `main` branch with all good work merged. Stale branches gone, local
    ```
 4. One commit per merge; document the merge order in commit messages.
 
-## Phase 2 — Delete website/
+## Phase 2 — Old `website/` tree (already removed; do not repeat)
 
-The entire `website/` folder is gone. Sweep for residual references.
+This phase already ran. The old Next.js tree at `website/` is gone. That record is not a task.
 
-1. `rm -rf website/`
-2. Grep the whole repo for residual references and remove dead links / mentions:
-   ```bash
-   grep -rn "website" --include="*.md" --include="*.ps1" --include="*.bat"
-   grep -rn "TweakEazy" --include="*.md"
-   grep -rn "FILE_LINKS\|repoFile" .
-   ```
-3. Remove any `.github/workflows/*.yml` that built or deployed the site.
-4. Remove `package.json`, `package-lock.json`, `pnpm-lock.yaml`, `node_modules/`, `vite.config.ts`, `tsconfig.json`, `tailwind.config.*`, `postcss.config.*`, `index.html` — anything at the repo root that existed only for the website. Keep `package.json` only if there's evidence it's used by something other than the website.
-5. Update `.gitignore` to drop website-specific entries.
-6. Update `README.md` and `GUIDE.md` to remove links to the site.
-7. Commit: `chore: remove website/ and associated tooling`.
+Leave `site/` in place. Leave `.github/workflows/deploy-site.yml` in place. Do not delete either. Do not strip the current landing site out of `README.md`, `GUIDE.md`, `.gitignore`, or workflow files.
 
 ## Phase 3 — Dead file cleanup
 
@@ -61,7 +60,7 @@ The entire `website/` folder is gone. Sweep for residual references.
    - Files older than 6 months with zero references in current code (`git log -1 --format=%ai -- <file>`).
 2. Do NOT delete:
    - Anything in `lib/` without grepping the entire repo for the symbol/function name first.
-   - `GUIDE.md`, `BIOS-CHECKLIST.md`, `KNOWN-ISSUES.md`, `CHANGES.md`, `CODEX-AUDIT.md`, `LICENSE`, `README.md`.
+   - `GUIDE.md`, `BIOS-CHECKLIST.md`, `KNOWN-ISSUES.md`, `CHANGELOG.md`, `LICENSE`, `README.md`, `site/`.
    - The `prompts/` folder.
    - Any `.reg` file paired to a tracked tweak.
 3. For each delete, write a one-line justification in the commit body.
@@ -165,18 +164,19 @@ After all four phases:
 
 If any check fails, fix forward in a `fix:` commit. Do not unwind the cleanup unless something is genuinely unrecoverable.
 
-## Phase 6 — Output
+## Phase 6 — Output (archive; do not produce these again)
 
-1. `CLEANUP.md` at repo root: branches merged + deleted, files removed (grouped by reason), launcher changes summarized.
-2. New `launcher.ps1`.
-3. Updated `GUIDE.md` reflecting removed website + new launcher.
-4. Conventional commits, one per logical change. Sample sequence:
+These outputs already landed. Do not write `CLEANUP.md` or any other removed audit doc.
+
+1. Cleanup notes were folded into `KNOWN-ISSUES.md` and `CHANGELOG.md`. Do not recreate `CLEANUP.md`.
+2. `launcher.ps1` was redesigned in that pass.
+3. `GUIDE.md` was updated for the launcher. Do not remove `site/` links from it under this prompt.
+4. Conventional commits from that pass (already on `main`; do not repeat):
    - `chore: merge feat/freethy-integration into main`
-   - `chore: remove website/ and associated tooling`
    - `chore: drop .DS_Store and editor backups`
    - `chore: remove orphan revert scripts`
    - `feat(launcher): redesign with tiered color coding and status indicators`
-   - `docs: update GUIDE.md for new launcher and removed website`
+   - `docs: update GUIDE.md for new launcher`
 
 ## Hard constraints
 
@@ -184,6 +184,6 @@ If any check fails, fix forward in a `fix:` commit. Do not unwind the cleanup un
 - Do not break apply / revert / verify. If cleanup conflicts with keeping the toolkit working, keep it working.
 - Do not change risk tier strings, manifest format, or helper function signatures during this cleanup. Scope creep.
 - Do not stuff branch consolidation, file deletion, and launcher redesign into one mega-commit.
-- The new launcher is opinionated about layout and color. If you want to deviate, justify in `CLEANUP.md` under `## Design deviations`.
+- The new launcher is opinionated about layout and color. Deviations from that pass, if any, live in `KNOWN-ISSUES.md`. Do not recreate `CLEANUP.md`.
 
-Begin with Phase 0. Output the branch list and per-branch plan before doing anything destructive.
+Do not begin. This file is historical.
