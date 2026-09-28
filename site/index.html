@@ -3,138 +3,153 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#e2e2df">
     <meta
       name="description"
-      content="A reversible Windows 11 gaming optimization toolkit with risk tiers, backup guidance, and clear apply/revert paths."
+      content="TweakEazy is a reversible Windows 11 gaming toolkit with risk tiers, backup guidance, and a clear apply/revert path."
     >
-    <title>Win11 Gaming Toolkit</title>
+    <title>TweakEazy — Windows 11 tweaks you can undo</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@500&display=swap"
+      rel="stylesheet"
+    >
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <a class="skip-link" href="#top">Skip to content</a>
+
     <header class="site-header" data-elevated="false">
-      <a class="brand" href="#top" aria-label="Win11 Gaming Toolkit home">
-        <span class="brand-mark" aria-hidden="true">WG</span>
-        <span>
-          <strong>Win11 Gaming Toolkit</strong>
-          <small>reversible PC tweaks</small>
-        </span>
-      </a>
+      <div class="nav-pill">
+        <a class="brand" href="#top" aria-label="TweakEazy home">
+          <span class="brand-mark" aria-hidden="true">TE</span>
+          TweakEazy
+        </a>
 
-      <nav class="nav-links" aria-label="Primary navigation">
-        <a href="#runbook">Runbook</a>
-        <a href="#catalog">Tweaks</a>
-        <a href="#safety">Safety</a>
-        <a href="#faq">FAQ</a>
-      </nav>
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="primary-nav"
+          aria-label="Menu"
+          id="menu-toggle"
+        >
+          <span class="menu-bars" aria-hidden="true"></span>
+        </button>
 
-      <a class="header-action" href="https://github.com/cococool13/TweakEazy/blob/main/GUIDE.md">Read guide</a>
+        <nav class="nav-links" id="primary-nav" aria-label="Primary">
+          <a href="#runbook">Runbook</a>
+          <a href="#catalog">Tweaks</a>
+          <a href="#safety">Safety</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <a class="button primary" href="https://github.com/cococool13/tweakeazy/blob/main/GUIDE.md">Read guide</a>
+      </div>
     </header>
 
     <main id="top">
       <section class="hero" aria-labelledby="hero-title">
-        <img
-          class="hero-image"
-          src="assets/hero-workstation.png"
-          alt="Dark gaming workstation with performance dashboards and a desktop PC"
-        >
-        <div class="hero-shade" aria-hidden="true"></div>
-
-        <div class="hero-content">
-          <div class="eyebrow">
-            <span class="signal-dot" aria-hidden="true"></span>
-            Manifest-tracked Windows 11 tuning
-          </div>
-          <h1 id="hero-title">Tune your gaming PC without losing the undo button.</h1>
-          <p class="hero-copy">
-            A source-cited toolkit for Windows 11 performance tweaks, gaming latency checks,
-            clean driver paths, and aggressive opt-ins with a clear revert contract.
+        <div class="hero-copy-block">
+          <p class="eyebrow">Windows 11 · source-cited · reversible</p>
+          <h1 id="hero-title"><span>Tune the PC</span><span>Keep the undo</span></h1>
+          <p class="lede">
+            Gaming tweaks with risk labels, a backup step, and a revert script.
+            Admin PowerShell. No bundled binaries.
           </p>
-
-          <div class="hero-actions" aria-label="Primary actions">
-            <button class="button primary" type="button" data-copy="quickstart-command">
-              Copy quickstart
-            </button>
+          <div class="hero-actions">
+            <button class="button primary" type="button" data-copy="quickstart-command">Copy launcher</button>
             <a class="button secondary" href="#runbook">Choose a path</a>
           </div>
-
-          <div class="command-line" aria-label="Quickstart command">
-            <span>Admin PowerShell</span>
-            <code id="quickstart-command">cd "&lt;path-to-repo&gt;"; .\launcher.ps1</code>
-          </div>
         </div>
 
-        <aside class="hero-panel" aria-label="Toolkit status">
-          <div class="panel-header">
-            <span>Toolkit posture</span>
-            <strong>v1.0.0</strong>
-          </div>
-          <div class="metric-grid">
-            <div>
-              <strong>1100+</strong>
-              <span>Pester tests</span>
-            </div>
-            <div>
-              <strong>66/66</strong>
-              <span>impact headers</span>
-            </div>
-            <div>
-              <strong>0</strong>
-              <span>bundled binaries</span>
-            </div>
-            <div>
-              <strong>3</strong>
-              <span>risk tiers</span>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section class="intro-band" aria-label="Core promises">
-        <div class="promise">
-          <span>01</span>
-          <strong>Launcher first</strong>
-          <p>Run one guided menu instead of guessing which script to start with.</p>
-        </div>
-        <div class="promise">
-          <span>02</span>
-          <strong>Tracked rollback</strong>
-          <p>Advanced changes capture pre-toolkit state before they mutate Windows.</p>
-        </div>
-        <div class="promise">
-          <span>03</span>
-          <strong>Trade-offs visible</strong>
-          <p>Anti-cheat, reboot, disk, and security impact are called out before you run.</p>
+        <div class="hero-halftone" aria-hidden="true">
+          <svg viewBox="0 0 640 720" preserveAspectRatio="xMidYMid slice" focusable="false">
+            <defs>
+              <linearGradient id="heat" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0%" stop-color="#524ae9" />
+                <stop offset="72%" stop-color="#fc5000" />
+              </linearGradient>
+              <linearGradient id="dotfade" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0%" stop-color="#fff" />
+                <stop offset="78%" stop-color="#000" />
+              </linearGradient>
+              <pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse">
+                <circle cx="6" cy="6" r="3.35" fill="#fc5000" />
+              </pattern>
+              <mask id="dotmask">
+                <rect width="640" height="720" fill="url(#dotfade)" />
+              </mask>
+            </defs>
+            <rect width="640" height="720" fill="url(#heat)" />
+            <rect width="640" height="720" fill="url(#dots)" mask="url(#dotmask)" opacity="0.72" />
+          </svg>
         </div>
       </section>
 
-      <section class="section runbook" id="runbook" aria-labelledby="runbook-title">
-        <div class="section-kicker">Runbook</div>
+      <section class="stats" aria-label="Toolkit facts">
+        <article class="stat-card">
+          <span>Pester tests</span>
+          <strong>1100+</strong>
+        </article>
+        <article class="stat-card">
+          <span>Impact headers</span>
+          <strong>66/66</strong>
+        </article>
+        <article class="stat-card">
+          <span>Bundled binaries</span>
+          <strong>0</strong>
+        </article>
+        <article class="stat-card">
+          <span>Risk tiers</span>
+          <strong>3</strong>
+        </article>
+      </section>
+
+      <section class="stories" aria-labelledby="stories-title">
+        <div class="section-intro">
+          <h2 id="stories-title">Built like a release, not a zip of mystery scripts.</h2>
+          <p>Start in the launcher. Verify before you apply. Aggressive mode exists, and it is not the default.</p>
+        </div>
+
+        <div class="story-grid">
+          <article class="content-card">
+            <span class="tag">First run</span>
+            <h3>Launcher first</h3>
+            <p>One elevated menu. Backup, verify, apply, revert, or a single category. No guessing which script to start.</p>
+          </article>
+          <article class="content-card">
+            <span class="tag">Rollback</span>
+            <h3>Tracked undo</h3>
+            <p>Advanced writes capture pre-toolkit state under ProgramData before they mutate Windows.</p>
+          </article>
+          <article class="plasma-card">
+            <span class="tag">Not the default</span>
+            <h3>Apply everything is a choice</h3>
+            <p>Full-stack apply is aggressive by design. Read the guide and the security trade-off scripts first.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="runbook" aria-labelledby="runbook-title">
         <div class="section-head split">
           <div>
+            <p class="eyebrow">Runbook</p>
             <h2 id="runbook-title">Pick the path that matches your risk tolerance.</h2>
-            <p>
-              Start with the launcher unless you already know the exact phase you want.
-              The aggressive full-stack apply exists, but it is not the default recommendation.
-            </p>
+            <p>Start with the launcher unless you already know the exact phase you want.</p>
           </div>
-          <a class="text-link" href="https://github.com/cococool13/TweakEazy/blob/main/MANUAL-TEST-CHECKLIST.md">Release checklist</a>
+          <a class="text-link" href="https://github.com/cococool13/tweakeazy/blob/main/MANUAL-TEST-CHECKLIST.md">Release checklist</a>
         </div>
 
         <div class="path-shell">
           <div class="path-tabs" role="tablist" aria-label="Toolkit paths">
-            <button class="path-tab is-active" type="button" role="tab" aria-selected="true" data-path="guided">
-              Guided
-            </button>
-            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="verify">
-              Verify
-            </button>
-            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="aggressive">
-              Aggressive
-            </button>
-            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="rollback">
-              Rollback
-            </button>
+            <button class="path-tab is-active" type="button" role="tab" aria-selected="true" data-path="guided">Guided</button>
+            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="verify">Verify</button>
+            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="aggressive">Aggressive</button>
+            <button class="path-tab" type="button" role="tab" aria-selected="false" data-path="rollback">Rollback</button>
           </div>
 
           <div class="path-content">
@@ -154,7 +169,7 @@
 
             <div class="command-card">
               <div class="command-card-top">
-                <span>Command</span>
+                <span>Admin PowerShell</span>
                 <button class="copy-button" type="button" data-copy="path-command">Copy</button>
               </div>
               <pre><code id="path-command">cd "&lt;path-to-repo&gt;"
@@ -164,14 +179,11 @@
         </div>
       </section>
 
-      <section class="section catalog" id="catalog" aria-labelledby="catalog-title">
-        <div class="section-kicker">Tweak catalog</div>
+      <section class="section" id="catalog" aria-labelledby="catalog-title">
         <div class="section-head">
-          <h2 id="catalog-title">Everything is grouped by intent, not mystery switches.</h2>
-          <p>
-            Filter by risk tier and use the paired restore scripts when you are testing one
-            change at a time.
-          </p>
+          <p class="eyebrow">Tweak catalog</p>
+          <h2 id="catalog-title">Grouped by intent, not mystery switches.</h2>
+          <p>Filter by risk tier. Use the paired restore scripts when you are testing one change at a time.</p>
         </div>
 
         <div class="filter-bar" aria-label="Filter tweaks by risk">
@@ -183,42 +195,42 @@
 
         <div class="tweak-grid">
           <article class="tweak-card" data-tier="safe">
-            <div class="tier safe">Safe</div>
+            <span class="tag">Safe</span>
             <h3>Backup and restore point</h3>
             <p>Create a Windows restore point and export key registry areas before tuning.</p>
             <code>1 backup\create-backup.ps1</code>
           </article>
 
           <article class="tweak-card" data-tier="safe">
-            <div class="tier safe">Safe</div>
+            <span class="tag">Safe</span>
             <h3>Hardware audits</h3>
             <p>Read-only checks for pagefile, DirectStorage, polling rate, MSI mode, RAM, CPU, and GPU.</p>
             <code>12 hardware\check-*.ps1</code>
           </article>
 
           <article class="tweak-card" data-tier="advanced">
-            <div class="tier advanced">Advanced</div>
+            <span class="tag">Advanced</span>
             <h3>Power and services</h3>
             <p>Performance power plan, service trimming, startup delay, and background task cleanup.</p>
             <code>2 power plan\configure-power.ps1</code>
           </article>
 
           <article class="tweak-card" data-tier="advanced">
-            <div class="tier advanced">Advanced</div>
+            <span class="tag">Advanced</span>
             <h3>GPU path</h3>
             <p>Driver install helpers, MSI mode, ReBAR checks, NVIDIA P0, and AMD ULPS opt-ins.</p>
             <code>6 gpu\install-gpu-driver.ps1</code>
           </article>
 
           <article class="tweak-card" data-tier="advanced">
-            <div class="tier advanced">Advanced</div>
+            <span class="tag">Advanced</span>
             <h3>Network latency</h3>
             <p>Adapter power settings, RSS tuning, RSC, interrupt moderation, DNS, and Nagle-related flags.</p>
             <code>7 network\optimize-network.ps1</code>
           </article>
 
           <article class="tweak-card" data-tier="tradeoff">
-            <div class="tier tradeoff">Trade-off</div>
+            <span class="tag">Trade-off</span>
             <h3>Security vs performance</h3>
             <p>Opt-in scripts for VBS, HVCI, LSA protection, DEP, Defender, and Spectre/Meltdown toggles.</p>
             <code>8 security vs performance\configure-vbs.ps1</code>
@@ -226,35 +238,34 @@
         </div>
       </section>
 
-      <section class="section safety" id="safety" aria-labelledby="safety-title">
-        <div class="section-kicker">Safety model</div>
+      <section class="section" id="safety" aria-labelledby="safety-title">
         <div class="safety-layout">
           <div>
-            <h2 id="safety-title">Aggressive tuning, but with guardrails you can audit.</h2>
+            <p class="eyebrow">Safety model</p>
+            <h2 id="safety-title">Aggressive tuning, with guardrails you can audit.</h2>
             <p>
-              The toolkit is built for people who want performance knobs without black-box behavior.
-              Every meaningful mutation is paired with a restore path, source context, and risk label.
+              For people who want performance knobs without black-box behavior.
+              Every meaningful mutation has a restore path, source context, and risk label.
             </p>
-
             <div class="safety-actions">
-              <a class="button secondary" href="https://github.com/cococool13/TweakEazy/blob/main/README.md">Toolkit README</a>
-              <a class="button secondary" href="https://github.com/cococool13/TweakEazy/blob/main/BIOS-CHECKLIST.md">BIOS checklist</a>
+              <a class="button secondary" href="https://github.com/cococool13/tweakeazy/blob/main/README.md">Toolkit README</a>
+              <a class="button secondary" href="https://github.com/cococool13/tweakeazy/blob/main/BIOS-CHECKLIST.md">BIOS checklist</a>
             </div>
           </div>
 
           <div class="safety-rail" aria-label="Safety checklist">
             <div class="rail-item">
-              <span>Before</span>
+              <span class="tag">Before</span>
               <strong>Create backup and read GUIDE.md.</strong>
               <p>Do not start with Apply Everything on a school, work-managed, or mission-critical PC.</p>
             </div>
             <div class="rail-item">
-              <span>During</span>
+              <span class="tag">During</span>
               <strong>Apply one category at a time if you are troubleshooting.</strong>
               <p>Gaming laptops, hybrid GPUs, and anti-cheat-heavy setups deserve slower changes.</p>
             </div>
             <div class="rail-item">
-              <span>After</span>
+              <span class="tag">After</span>
               <strong>Run verify and reboot when the script says so.</strong>
               <p>If a change hurts stability, use the paired restore script or REVERT-EVERYTHING.ps1.</p>
             </div>
@@ -262,61 +273,60 @@
         </div>
       </section>
 
-      <section class="section proof" aria-labelledby="proof-title">
-        <div class="section-kicker">What makes it different</div>
-        <h2 id="proof-title">Built more like a release artifact than a random optimizer zip.</h2>
-
-        <div class="proof-grid">
-          <div>
-            <strong>Manifest rollback</strong>
-            <p>Tracked registry and service writes are captured under ProgramData before mutation.</p>
-          </div>
-          <div>
-            <strong>Source-cited scripts</strong>
-            <p>Headers point to Microsoft Learn, vendor docs, or upstream project context.</p>
-          </div>
-          <div>
-            <strong>No hidden binaries</strong>
-            <p>Third-party tools are downloaded at runtime and verified by SHA-256.</p>
-          </div>
-          <div>
-            <strong>Trade-off labels</strong>
-            <p>Security and anti-cheat implications are visible before you run the risky path.</p>
-          </div>
+      <section class="command-band" aria-labelledby="install-title">
+        <p class="eyebrow chalk">Admin PowerShell</p>
+        <h2 id="install-title">One command to open the toolkit.</h2>
+        <p>Clone the repo, elevate PowerShell, then paste this. Read GUIDE.md before Apply Everything.</p>
+        <div class="command-line">
+          <code id="quickstart-command">cd "&lt;path-to-repo&gt;"; .\launcher.ps1</code>
+          <button class="button primary" type="button" data-copy="quickstart-command">Copy</button>
         </div>
       </section>
 
       <section class="section faq" id="faq" aria-labelledby="faq-title">
-        <div class="section-kicker">FAQ</div>
-        <h2 id="faq-title">Run it like a tool, not a superstition.</h2>
+        <div class="faq-layout">
+          <div>
+            <p class="eyebrow">FAQ</p>
+            <h2 id="faq-title">Run it like a tool, not a superstition.</h2>
+          </div>
 
-        <div class="faq-list">
-          <details open>
-            <summary>What should I run first?</summary>
-            <p>Run <code>.\launcher.ps1</code> from Administrator PowerShell, then use [V] verify and the backup path before applying changes.</p>
-          </details>
-          <details>
-            <summary>Is Apply Everything safe?</summary>
-            <p>It is aggressive by design. Use it only after reading the guide and understanding the Security Trade-off scripts.</p>
-          </details>
-          <details>
-            <summary>Can I undo changes?</summary>
-            <p>Use paired restore scripts for individual tweaks or <code>.\REVERT-EVERYTHING.ps1</code> for the manifest-driven rollback path.</p>
-          </details>
-          <details>
-            <summary>Can I test this from macOS?</summary>
-            <p>No. The toolkit is developed here, but runtime testing must happen on Windows 11 with the manual checklist.</p>
-          </details>
+          <div class="faq-list">
+            <details open>
+              <summary>What should I run first?</summary>
+              <p>Run <code>.\launcher.ps1</code> from Administrator PowerShell, then use [V] verify and the backup path before applying changes.</p>
+            </details>
+            <details>
+              <summary>Is Apply Everything safe?</summary>
+              <p>It is aggressive by design. Use it only after reading the guide and understanding the Security Trade-off scripts.</p>
+            </details>
+            <details>
+              <summary>Can I undo changes?</summary>
+              <p>Use paired restore scripts for individual tweaks or <code>.\REVERT-EVERYTHING.ps1</code> for the manifest-driven rollback path.</p>
+            </details>
+            <details>
+              <summary>Can I test this from macOS?</summary>
+              <p>No. The toolkit is developed here, but runtime testing must happen on Windows 11 with the manual checklist.</p>
+            </details>
+          </div>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p>Win11 Gaming Toolkit. Reversible Windows 11 tuning for people who read the warnings.</p>
-      <div>
-        <a href="https://github.com/cococool13/TweakEazy/blob/main/CHANGELOG.md">Changelog</a>
-        <a href="https://github.com/cococool13/TweakEazy/blob/main/KNOWN-ISSUES.md">Known issues</a>
-        <a href="https://github.com/cococool13/TweakEazy/blob/main/LICENSE">MIT license</a>
+      <div class="footer-closer">
+        <p class="eyebrow">Ready when you are</p>
+        <h2 class="footer-title">Open the launcher. Keep the undo.</h2>
+        <p>TweakEazy. Reversible Windows 11 tuning for people who read the warnings.</p>
+        <div class="footer-actions">
+          <button class="button primary" type="button" data-copy="quickstart-command">Copy launcher</button>
+          <a class="button secondary" href="https://github.com/cococool13/tweakeazy/blob/main/GUIDE.md">Read the guide</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/cococool13/tweakeazy">GitHub</a>
+        <a href="https://github.com/cococool13/tweakeazy/blob/main/CHANGELOG.md">Changelog</a>
+        <a href="https://github.com/cococool13/tweakeazy/blob/main/KNOWN-ISSUES.md">Known issues</a>
+        <a href="https://github.com/cococool13/tweakeazy/blob/main/LICENSE">MIT license</a>
       </div>
     </footer>
 

@@ -1,16 +1,21 @@
 # ============================================================
 # Win11 Gaming Toolkit — CI
 # ============================================================
-# Runs on every push + PR:
-#   - PSScriptAnalyzer with project ruleset (.psscriptanalyzer.psd1)
-#   - Pester v5 test suite (tests/**/*.Tests.ps1)
+# Runs on every push to main / CC/** and on pull requests to main.
 #
-# Two job matrix:
-#   - ubuntu (parser-only, static analysis — fastest feedback)
-#   - windows-latest (runtime-capable; runs WindowsOnly-tagged tests)
+# One gate, two runners. Both jobs use pwsh (PowerShell 7), not
+# Windows PowerShell 5.1, and both invoke tools/Invoke-ToolkitGate.ps1:
+#   - PSScriptAnalyzer with .psscriptanalyzer.psd1
+#   - Pester v5 (tests/**/*.Tests.ps1)
 #
-# Both jobs use the same tools/Invoke-ToolkitGate.ps1 entrypoint so
-# devs can reproduce CI failures locally.
+# ubuntu-latest and windows-latest run that same suite. The tests are
+# static / AST. No test is tagged for a Windows-only host, and
+# tests/integration/ is not part of this workflow. PS 5.1 syntax is
+# checked by tests/invariants/ps51-load-path.Tests.ps1 on these pwsh
+# jobs, not by a Windows PowerShell 5.1 runner.
+#
+# Analyzer and Pester failures print in the job log. The committed
+# .psscriptanalyzer-baseline.json snapshot is not a gate output.
 # ============================================================
 name: ci
 
@@ -41,11 +46,3 @@ jobs:
       - name: Run quality gate
         shell: pwsh
         run: pwsh -File tools/Invoke-ToolkitGate.ps1
-
-      - name: Upload analyzer output (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: psscriptanalyzer-${{ matrix.os }}
-          path: |
-            .psscriptanalyzer-baseline.json

@@ -150,10 +150,7 @@ if (-not $SkipTests) {
         $config.Run.Path = $testsDir
         $config.Run.PassThru = $true
         $config.Output.Verbosity = 'Normal'
-        # Skip Windows-specific tests on macOS / Linux CI runners
-        if (-not $IsWindows) {
-            $config.Filter.ExcludeTag = @('WindowsOnly')
-        }
+        # Every test in tests/ runs on every host. The suite is static.
         if ($Coverage) {
             # Cover lib/*.ps1 AND the per-folder tweak scripts. Pester
             # emits a single combined report, so we collect both
