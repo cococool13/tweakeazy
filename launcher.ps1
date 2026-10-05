@@ -184,20 +184,6 @@ function Get-LauncherTierLabel {
     return $Tier
 }
 
-function Write-LauncherBox {
-    param([string]$Top, [string]$Bottom, [string[]]$Lines)
-    $borderColor = $script:UI_Soft
-    if ($script:LauncherUseAscii) {
-        Write-Host $Top -ForegroundColor $borderColor
-        foreach ($line in $Lines) { Write-Host $line }
-        Write-Host $Bottom -ForegroundColor $borderColor
-    } else {
-        Write-Host $Top -ForegroundColor $borderColor
-        foreach ($line in $Lines) { Write-Host $line }
-        Write-Host $Bottom -ForegroundColor $borderColor
-    }
-}
-
 function Write-LauncherSectionLabel {
     param([string]$Label)
     Write-Host ""
