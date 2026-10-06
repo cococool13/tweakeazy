@@ -16,9 +16,9 @@
       Publisher      - signing identity
       InstallLocation- where files live (useful for size estimation)
       Status         - OK / Modified / Tampered
-      OnDebloatList  - flagged ✓ if 9 cleanup/debloat.ps1 would
-                       remove this package
-      OnSafetyList   - flagged ✓ if it's in debloat.ps1's $neverRemove
+      OnDebloatList  - flagged ✓ if lib/debloat-catalog.ps1 would
+                       remove this package (same list as debloat.ps1)
+      OnSafetyList   - flagged ✓ if it's on the shared never-remove list
 
     Sort: -Sort Name|Publisher|Status. Default: Name.
     Filter: -OnlyDebloatCandidates limits to apps debloat.ps1 would
@@ -34,7 +34,7 @@
     Column to sort by. Default: Name.
 
 .PARAMETER OnlyDebloatCandidates
-    Limit output to apps in debloat.ps1's $appsToRemove list — preview
+    Limit output to apps in the shared debloat catalog — preview
     what running debloat.ps1 with no edits would target.
 
 .PARAMETER AsObject
@@ -74,6 +74,7 @@ param(
 )
 
 . "$PSScriptRoot\..\lib\ui-helpers.ps1"
+. "$PSScriptRoot\..\lib\debloat-catalog.ps1"
 
 if (-not (Get-Command Get-AppxPackage -ErrorAction SilentlyContinue)) {
     Write-Host '  [SKIP] Get-AppxPackage not available.' -ForegroundColor Yellow
@@ -81,36 +82,9 @@ if (-not (Get-Command Get-AppxPackage -ErrorAction SilentlyContinue)) {
     exit 2
 }
 
-# Parse the debloat lists straight from debloat.ps1 so this stays in
-# sync without manual duplication. AST walk is safer than regex over
-# the array literals.
-$debloatScript = Join-Path $PSScriptRoot '..' '9 cleanup/debloat.ps1'
-$debloatList = @()
-$neverRemoveList = @()
-if (Test-Path -LiteralPath $debloatScript) {
-    $ast = [System.Management.Automation.Language.Parser]::ParseFile(
-        $debloatScript, [ref]$null, [ref]$null
-    )
-    foreach ($assign in $ast.FindAll({
-                param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst]
-            }, $true)) {
-        $varName = $assign.Left.Extent.Text
-        if ($varName -eq '$appsToRemove' -or $varName -eq '$neverRemove') {
-            # Walk the array literal for either string elements or
-            # hashtable `Name = '...'` entries.
-            $strings = $assign.Right.FindAll({
-                    param($n) $n -is [System.Management.Automation.Language.StringConstantExpressionAst]
-                }, $true) | ForEach-Object Value
-            # For $appsToRemove the array holds hashtables; pick out
-            # only the 'Name' values (every other index).
-            if ($varName -eq '$appsToRemove') {
-                $debloatList = @($strings | Where-Object { $_ -match '^[A-Za-z]' -and $_ -notin 'Safe', 'Advanced' -and $_ -notmatch '\s' })
-            } else {
-                $neverRemoveList = @($strings | Where-Object { $_ -match '^Microsoft' })
-            }
-        }
-    }
-}
+# Shared catalog — same list debloat.ps1 and Apply All remove.
+$debloatList = @(Get-ToolkitDebloatCatalog | ForEach-Object { $_.Name })
+$neverRemoveList = @(Get-ToolkitDebloatNeverRemove)
 
 UI-Header -Title 'UWP / Appx package audit' -Subtitle 'Read-only inventory'
 

@@ -50,6 +50,7 @@ param(
 . "$PSScriptRoot\lib\toolkit-state.ps1"
 . "$PSScriptRoot\lib\ui-helpers.ps1"
 . "$PSScriptRoot\lib\gpu-detection.ps1"
+. "$PSScriptRoot\lib\debloat-catalog.ps1"
 
 $Host.UI.RawUI.WindowTitle = "Windows 11 Gaming Optimization — Apply Everything"
 UI-Header -Title "Windows 11 Optimization" -Subtitle "Apply Everything - aggressive full-stack run"
@@ -659,42 +660,30 @@ foreach ($path in $gamePaths) {
 # ============================================================
 UI-Section -Title "Phase 13: Debloat" -Context "Remove non-essential bundled apps"
 
-$appsToRemove = @(
-    "Clipchamp.Clipchamp", "Microsoft.BingNews", "Microsoft.BingWeather",
-    "Microsoft.GetHelp", "Microsoft.Getstarted", "Microsoft.MicrosoftOfficeHub",
-    "Microsoft.MicrosoftSolitaireCollection", "Microsoft.MicrosoftStickyNotes",
-    "Microsoft.People", "Microsoft.PowerAutomateDesktop", "Microsoft.Todos",
-    "Microsoft.WindowsAlarms", "Microsoft.WindowsFeedbackHub",
-    "Microsoft.WindowsMaps", "Microsoft.WindowsSoundRecorder",
-    "Microsoft.YourPhone", "Microsoft.ZuneMusic", "Microsoft.ZuneVideo",
-    "MicrosoftCorporationII.QuickAssist", "MicrosoftTeams",
-    "Microsoft.549981C3F5F10", "Microsoft.OutlookForWindows"
-)
+# Same catalog as 9 cleanup/debloat.ps1 (includes Xbox App and Outlook).
+$debloatCatalog = @(Get-ToolkitDebloatCatalog)
+$advancedNames = @($debloatCatalog | Where-Object { $_.Tier -eq 'Advanced' } | ForEach-Object { $_.Name })
+if ($advancedNames.Count -gt 0) {
+    UI-Note -Message "Advanced targets included: $($advancedNames -join ', '). Xbox Game Pass uses Microsoft.GamingApp." -Color $script:UI_Warning
+}
 
 $removed = 0
 $removeFailed = 0
-foreach ($app in $appsToRemove) {
-    $pkg = Get-AppxPackage -Name $app -ErrorAction SilentlyContinue
-    if ($pkg) {
-        try {
-            $pkg | Remove-AppxPackage -ErrorAction Stop
-            Record-ToolkitPackageRemoval -PackageName $app
-            $removed++
-        } catch {
-            $removeFailed++
-        }
-    }
+$provRemoved = 0
+$provFailed = 0
+foreach ($app in $debloatCatalog) {
+    $userResult = Invoke-ToolkitDebloatRemoval -PackageName $app.Name -Scope User
+    if ($userResult.Removed -gt 0) { $removed += $userResult.Removed }
+    if ($userResult.Failed -gt 0) { $removeFailed += $userResult.Failed }
 
-    Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue |
-        Where-Object { $_.DisplayName -eq $app } |
-        ForEach-Object {
-            $_ | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue 2>&1 | Out-Null
-            Record-ToolkitPackageRemoval -PackageName $app -Provisioned
-        }
+    # Record a provisioned removal only after that remove succeeds.
+    $provResult = Invoke-ToolkitDebloatRemoval -PackageName $app.Name -Scope Provisioned
+    if ($provResult.Removed -gt 0) { $provRemoved += $provResult.Removed }
+    if ($provResult.Failed -gt 0) { $provFailed += $provResult.Failed }
 }
-UI-Note -Message "Removed $removed bloatware apps." -Color $script:UI_Success
-if ($removeFailed -gt 0) {
-    UI-Note -Message "$removeFailed apps failed to remove (manual cleanup may be needed)." -Color $script:UI_Warning
+UI-Note -Message "Removed $removed bloatware apps ($provRemoved provisioned)." -Color $script:UI_Success
+if ($removeFailed -gt 0 -or $provFailed -gt 0) {
+    UI-Note -Message "$removeFailed apps and $provFailed provisioned packages failed to remove (not recorded)." -Color $script:UI_Warning
 }
 
 # ============================================================
