@@ -15,11 +15,13 @@ BeforeAll {
             param([string]$Name)
         }
     }
-    if (-not (Get-Command Get-AppxProvisionedPackage -ErrorAction SilentlyContinue)) {
-        function Get-AppxProvisionedPackage {
-            [CmdletBinding()]
-            param([switch]$Online)
-        }
+    # Shadow the DISM cmdlets on every host. Pester copies the resolved
+    # command's parameter sets into the mock. The real Online set takes
+    # -PackageName by property name only, so a mock body never runs when
+    # that bind fails. These stubs are the command the mock hooks.
+    function Get-AppxProvisionedPackage {
+        [CmdletBinding()]
+        param([switch]$Online)
     }
     if (-not (Get-Command Remove-AppxPackage -ErrorAction SilentlyContinue)) {
         function Remove-AppxPackage {
@@ -34,19 +36,16 @@ BeforeAll {
             process { }
         }
     }
-    if (-not (Get-Command Remove-AppxProvisionedPackage -ErrorAction SilentlyContinue)) {
-        function Remove-AppxProvisionedPackage {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
-                'PSUseShouldProcessForStateChangingFunctions', '',
-                Justification = 'Test stub so Pester can Mock the Windows-only cmdlet.')]
-            [CmdletBinding()]
-            param(
-                [Parameter(ValueFromPipeline = $true)]
-                $InputObject,
-                [switch]$Online
-            )
-            process { }
-        }
+    function Remove-AppxProvisionedPackage {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+            'PSUseShouldProcessForStateChangingFunctions', '',
+            Justification = 'Test stub so Pester can Mock the Windows-only cmdlet.')]
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$PackageName,
+            [switch]$Online
+        )
     }
     if (-not (Get-Command Record-ToolkitPackageRemoval -ErrorAction SilentlyContinue)) {
         function Record-ToolkitPackageRemoval {
@@ -173,7 +172,10 @@ Describe 'lib/debloat-catalog.ps1 — record provisioned removal only after succ
 
     It 'records a provisioned removal only after Remove-AppxProvisionedPackage succeeds' {
         Mock Get-AppxProvisionedPackage {
-            [PSCustomObject]@{ DisplayName = 'Microsoft.BingNews' }
+            [PSCustomObject]@{
+                DisplayName = 'Microsoft.BingNews'
+                PackageName = 'Microsoft.BingNews_1.0.0.0_neutral_~_8wekyb3d8bbwe'
+            }
         }
         Mock Remove-AppxProvisionedPackage { }
         Mock Record-ToolkitPackageRemoval { }
@@ -187,7 +189,10 @@ Describe 'lib/debloat-catalog.ps1 — record provisioned removal only after succ
 
     It 'does not record a provisioned removal when Remove-AppxProvisionedPackage fails' {
         Mock Get-AppxProvisionedPackage {
-            [PSCustomObject]@{ DisplayName = 'Microsoft.OutlookForWindows' }
+            [PSCustomObject]@{
+                DisplayName = 'Microsoft.OutlookForWindows'
+                PackageName = 'Microsoft.OutlookForWindows_1.0.0.0_neutral_~_8wekyb3d8bbwe'
+            }
         }
         Mock Remove-AppxProvisionedPackage { throw 'provisioned remove failed' }
         Mock Record-ToolkitPackageRemoval { }
@@ -199,10 +204,14 @@ Describe 'lib/debloat-catalog.ps1 — record provisioned removal only after succ
 
     It 'records only the provisioned packages that actually came off' {
         Mock Get-AppxProvisionedPackage {
-            @(
-                [PSCustomObject]@{ DisplayName = 'Microsoft.GamingApp' }
-                [PSCustomObject]@{ DisplayName = 'Microsoft.GamingApp' }
-            )
+            [PSCustomObject]@{
+                DisplayName = 'Microsoft.GamingApp'
+                PackageName = 'Microsoft.GamingApp_1.0.0.0_neutral_~_8wekyb3d8bbwe'
+            }
+            [PSCustomObject]@{
+                DisplayName = 'Microsoft.GamingApp'
+                PackageName = 'Microsoft.GamingApp_2.0.0.0_neutral_~_8wekyb3d8bbwe'
+            }
         }
         $script:ProvisionedAttempts = 0
         Mock Remove-AppxProvisionedPackage {

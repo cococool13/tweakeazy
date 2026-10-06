@@ -193,7 +193,13 @@ function Invoke-ToolkitDebloatRemoval {
 
     foreach ($prov in $provisioned) {
         try {
-            $prov | Remove-AppxProvisionedPackage -Online -ErrorAction Stop | Out-Null
+            # DISM removes by the full PackageName, not the Appx DisplayName.
+            # A missing name is a failed remove and must not be recorded.
+            $fullName = [string]$prov.PackageName
+            if ([string]::IsNullOrWhiteSpace($fullName)) {
+                throw 'Provisioned package is missing PackageName'
+            }
+            Remove-AppxProvisionedPackage -Online -PackageName $fullName -ErrorAction Stop | Out-Null
             Record-ToolkitPackageRemoval -PackageName $PackageName -Provisioned
             $result.Removed++
         } catch {
