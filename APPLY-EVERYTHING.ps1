@@ -219,6 +219,11 @@ $planGuid = "99999999-9999-9999-9999-999999999999"
 Run-Step "Activating Ultimate Performance plan" {
     cmd /c "powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 $planGuid" 2>&1 | Out-Null
     cmd /c "powercfg /SETACTIVE $planGuid" 2>&1 | Out-Null
+    # verify-tweaks.ps1 grades this key. Status "applied" reports the
+    # active Ultimate plan as APPLIED.
+    if ($LASTEXITCODE -eq 0) {
+        Add-ToolkitStepResult -Key "power:plan" -Tier "Safe" -Status "applied" -Reason "Ultimate Performance plan activated"
+    }
 }
 
 function Set-PowerIdx {

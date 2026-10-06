@@ -169,6 +169,19 @@ Describe 'APPLY-EVERYTHING.ps1 — surface contract' {
         }
     }
 
+    Context 'power:plan step recorded for verify' {
+        It 'records power:plan as applied after Ultimate Performance activation' {
+            # verify-tweaks.ps1 grades "Ultimate Performance plan is active"
+            # against this key. A missing record shows PREEXISTING.
+            $idx = $script:Content.IndexOf('Activating Ultimate Performance plan')
+            $idx | Should -BeGreaterThan -1
+            $window = $script:Content.Substring($idx, [Math]::Min(900, $script:Content.Length - $idx))
+            $window | Should -Match 'Add-ToolkitStepResult\s+-Key\s+"power:plan"'
+            $window | Should -Match 'Status\s+"applied"'
+            $window | Should -Match 'LASTEXITCODE\s+-eq\s+0'
+        }
+    }
+
     Context 'Phase headings present' {
         It 'has section heading: <Text>' -ForEach $script:ExpectedPhaseHeadings {
             $script:Content | Should -Match ([regex]::Escape($Text))

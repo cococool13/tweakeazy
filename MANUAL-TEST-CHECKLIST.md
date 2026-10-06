@@ -68,8 +68,8 @@ Take a VM snapshot named `pre-apply`. Then in the **admin** PowerShell window:
 ```
 *(Note the backtick — the folder has a space.)*
 
-- [ ] **5.1** Tracked tweaks report `APPLIED` (or `OK` per the verify-tweaks helper). No `DRIFTED` rows.
-- [ ] **5.2** Footer reads `Security Trade-off items are intentional in Apply Everything.` — exact canonical wording (the b36d773 fix landed this).
+- [ ] **5.1** Tracked tweaks that default Apply All records report `APPLIED`. No `DRIFTED` rows. Ultimate Performance reports `APPLIED` (`state.steps` contains `power:plan` with status `applied`).
+- [ ] **5.2** Storage Sense, Windows Update, VBS, HVCI, and Spectre lines are absent (not `FAIL`). Footer reads `Security Trade-off and Storage Sense checks are graded only when their step is recorded. Default Apply All leaves them off.`
 - [ ] **5.3** Manifest path printed in the footer matches `C:\ProgramData\Win11GamingToolkit\state\manifest.json`.
 
 ## 6. Launcher render — post-apply manifest indicators
