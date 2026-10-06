@@ -19,7 +19,7 @@
 #   11. Applies Windows customization tweaks
 #   12. Adds Defender exclusions
 #   13. Removes bloatware apps
-#   14. Cleans temp files
+#   14. Cleans temp files (restarts wuauserv unless Phase 9 disabled it)
 #
 # Phases 9 and 10 are Security Trade-off tier and only run when
 # -IncludeSecurityTradeoffs is passed. Default is OFF.
@@ -144,6 +144,36 @@ function Set-TrackedService {
     }
     Set-ToolkitServiceStartMode -Name $Name -Mode $Mode -Tier $Tier -Step $Step
     Add-ToolkitStepResult -Key "service:$Name" -Tier $Tier -Status "applied" -Reason $Step
+}
+
+function Test-Phase9DisabledWuauserv {
+    # Phase 14 stops wuauserv only to unlock the download cache. This is
+    # the only case where that stop is allowed to stick: this run opted
+    # into Phase 9, the disable was recorded, and the live start type is
+    # Disabled. A failed sc.exe config never writes the step result, so
+    # the service is restarted. Default Apply All (flag off) is always false.
+    if (-not $IncludeSecurityTradeoffs) {
+        return $false
+    }
+
+    $state = Get-ToolkitState
+    if (-not $state) {
+        return $false
+    }
+    if (-not (Test-ToolkitMapHasKey -Map $state.steps -Key 'service:wuauserv')) {
+        return $false
+    }
+
+    $step = Get-ToolkitMapValue -Map $state.steps -Key 'service:wuauserv'
+    if ($step.status -ne 'applied' -or $step.reason -ne 'windows-update') {
+        return $false
+    }
+
+    $wu = Get-Service -Name 'wuauserv' -ErrorAction SilentlyContinue
+    if (-not $wu) {
+        return $false
+    }
+    return ($wu.StartType -eq 'Disabled')
 }
 
 # ============================================================
@@ -673,8 +703,16 @@ UI-Section -Title "Phase 14: Cleanup" -Context "Clear temp files and leftover fo
 Run-Step "Clearing user temp" { Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue }
 Run-Step "Clearing Windows temp" { Remove-Item -Path "$env:SystemRoot\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue }
 Run-Step "Clearing Windows Update cache" {
+    # Stop only long enough to delete SoftwareDistribution\Download.
+    # Start wuauserv again unless Phase 9 actually disabled it. A default
+    # Apply All (no -IncludeSecurityTradeoffs) must not leave Windows Update stopped.
     Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
     Remove-Item -Path "$env:SystemRoot\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue
+    if (Test-Phase9DisabledWuauserv) {
+        UI-Note -Message "      Leaving wuauserv stopped: Phase 9 disabled Windows Update." -Color $script:UI_Warning
+    } else {
+        Start-Service -Name wuauserv -ErrorAction SilentlyContinue
+    }
 }
 Run-Step "Clearing shader cache" { Remove-Item -Path "$env:LOCALAPPDATA\D3DSCache\*" -Recurse -Force -ErrorAction SilentlyContinue }
 Run-Step "Removing leftover folders" {

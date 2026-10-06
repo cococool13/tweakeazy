@@ -20,6 +20,9 @@
       - The 14-step header table is intact
       - All Set-TrackedRegistry / Set-TrackedService wrappers used
         downstream actually exist
+      - Phase 14 restarts wuauserv after download-cache cleanup unless
+        Phase 9 actually disabled it (default Apply All must not leave
+        Windows Update stopped)
 
     Registry writes are outside this file. The human checklist is
     tests/manual/APPLY-EVERYTHING.md.
@@ -207,6 +210,43 @@ Describe 'APPLY-EVERYTHING.ps1 — surface contract' {
         It 'calls UI-RequireAdmin near the top' {
             $head = ($script:Content -split "`n" | Select-Object -First 80) -join "`n"
             $head | Should -Match 'UI-RequireAdmin'
+        }
+    }
+
+    Context 'Phase 14 restarts wuauserv unless Phase 9 disabled it' {
+        It 'starts wuauserv after the download-cache stop on the default path' {
+            $idx = $script:Content.IndexOf('Clearing Windows Update cache')
+            $idx | Should -BeGreaterThan -1
+            $window = $script:Content.Substring($idx, [Math]::Min(1600, $script:Content.Length - $idx))
+            $stopAt = $window.IndexOf('Stop-Service -Name wuauserv')
+            $startAt = $window.IndexOf('Start-Service -Name wuauserv')
+            $stopAt | Should -BeGreaterThan -1
+            $startAt | Should -BeGreaterThan $stopAt
+            $window | Should -Match 'SoftwareDistribution\\Download'
+        }
+
+        It 'skips that start only when Phase 9 actually disabled wuauserv' {
+            $idx = $script:Content.IndexOf('Clearing Windows Update cache')
+            $window = $script:Content.Substring($idx, [Math]::Min(1600, $script:Content.Length - $idx))
+            $window | Should -Match 'if\s*\(\s*Test-Phase9DisabledWuauserv\s*\)'
+            $window | Should -Match 'Leaving wuauserv stopped: Phase 9 disabled Windows Update'
+            $gateAt = $window.IndexOf('Test-Phase9DisabledWuauserv')
+            $startAt = $window.IndexOf('Start-Service -Name wuauserv')
+            # The restart sits in the else branch, after the Phase 9 gate.
+            $startAt | Should -BeGreaterThan $gateAt
+        }
+
+        It 'requires the Phase 9 flag, the windows-update step record, and Disabled' {
+            $fn = $script:Functions | Where-Object { $_.Name -eq 'Test-Phase9DisabledWuauserv' }
+            $fn | Should -Not -BeNullOrEmpty
+            $body = $fn.Extent.Text
+            $body | Should -Match 'if\s*\(\s*-not\s+\$IncludeSecurityTradeoffs\s*\)'
+            $body | Should -Match "service:wuauserv"
+            $body | Should -Match "windows-update"
+            $body | Should -Match '\$step\.status\s*-ne\s*''applied'''
+            $body | Should -Match 'StartType\s*-eq\s*''Disabled'''
+            # Default Apply All must fall through to "not disabled".
+            $body | Should -Match 'return\s+\$false'
         }
     }
 }
