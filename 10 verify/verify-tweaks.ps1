@@ -241,6 +241,9 @@ if ($gpuDevices.Count -eq 0) {
     }
 }
 
+# Verify note: RFC 1323 timestamps stay disabled after Apply and after
+# Revert. Disabled is the inbox Windows value. Revert must not turn them
+# on. No manifest step key — a disabled result is PREEXISTING.
 Check "TCP timestamps disabled" {
     (netsh int tcp show global 2>&1) -match "Timestamps\s*:\s*disabled"
 }

@@ -111,6 +111,23 @@ Describe 'REVERT-EVERYTHING.ps1 — surface contract' {
         }
     }
 
+    Context 'TCP timestamps stay at the Windows default' {
+        It 'sets timestamps=disabled and does not turn them on' {
+            # Apply and stock Windows 11 both leave RFC 1323 timestamps
+            # disabled. The netsh value is not in the manifest, so revert
+            # must not flip the setting on.
+            $script:Content | Should -Match 'netsh\s+int\s+tcp\s+set\s+global\s+timestamps=disabled'
+            $script:Content | Should -Not -Match 'netsh\s+int\s+tcp\s+set\s+global\s+timestamps=enabled'
+        }
+
+        It 'network bat revert sets timestamps=disabled and does not turn them on' {
+            $bat = Get-ToolkitScriptPath '7 network/revert-network.bat'
+            $batContent = Get-Content -Raw -LiteralPath $bat
+            $batContent | Should -Match 'netsh\s+int\s+tcp\s+set\s+global\s+timestamps=disabled'
+            $batContent | Should -Not -Match 'netsh\s+int\s+tcp\s+set\s+global\s+timestamps=enabled'
+        }
+    }
+
     Context 'Reboot expectation surfaced to user' {
         It 'header or pre-confirm warns about reboot requirement' {
             $head = ($script:Content -split "`n" | Select-Object -First 30) -join "`n"

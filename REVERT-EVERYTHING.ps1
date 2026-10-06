@@ -270,7 +270,10 @@ foreach ($svc in @("NvTelemetryContainer", "amdfendr", "amdfendrmgr", "Intel(R) 
 # ============================================================
 UI-Section -Title "Phase 7: Network"
 
-Run-Step "Restoring TCP timestamps" { netsh int tcp set global timestamps=enabled 2>&1 | Out-Null }
+# RFC 1323 timestamps are disabled on stock Windows 11, and Apply sets
+# the same value. netsh global state is not in the manifest, so revert
+# must keep the inbox default. Enabling timestamps here is not a restore.
+Run-Step "TCP timestamps disabled (Windows default)" { netsh int tcp set global timestamps=disabled 2>&1 | Out-Null }
 Run-Step "Re-enabling Large Send Offload" {
     Get-NetAdapter -ErrorAction SilentlyContinue | ForEach-Object {
         Set-NetAdapterAdvancedProperty -Name $_.Name -DisplayName "Large Send Offload*" -DisplayValue "Enabled" -ErrorAction SilentlyContinue

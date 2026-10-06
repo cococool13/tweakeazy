@@ -50,6 +50,24 @@ ran a legacy non-tracked apply path.
 | 2 | Run REVERT-EVERYTHING.ps1 | Phase 7 "Restoring DNS" → Done. |
 | 3 | Same `Get-DnsClientServerAddress` | Back to original (DHCP-provided or user-set). |
 
+## TCP timestamps
+
+Apply and a stock Windows 11 install both leave RFC 1323 timestamps
+disabled (`netsh int tcp set global timestamps=disabled`). The netsh
+global value is not in the manifest, so revert must not turn timestamps
+on. A machine that had timestamps enabled before the toolkit ran cannot
+get that prior value back; revert returns the inbox default.
+
+Code-complete, runtime-pending.
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | On a fresh VM: `netsh int tcp show global` | `RFC 1323 Timestamps : disabled` |
+| 2 | Run `APPLY-EVERYTHING.ps1` or `7 network/optimize-network.ps1` | Still `disabled` |
+| 3 | Run `REVERT-EVERYTHING.ps1` | Phase 7 step reads `TCP timestamps disabled (Windows default)` and ends Done. `netsh int tcp show global` still shows `disabled` |
+| 4 | Run `7 network/revert-network.bat` | Step `[4/8]` says timestamps were left disabled. `netsh int tcp show global` still shows `disabled` |
+| 5 | `10 verify/verify-tweaks.ps1` | `TCP timestamps disabled` reports PREEXISTING (no manifest step key) |
+
 ## Empty-manifest case
 
 Tests the defaults fallback when a user runs REVERT without ever
