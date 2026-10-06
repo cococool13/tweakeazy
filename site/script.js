@@ -53,6 +53,9 @@ const header = document.querySelector(".site-header");
 const menuToggle = document.getElementById("menu-toggle");
 const primaryNav = document.getElementById("primary-nav");
 const toast = document.querySelector(".toast");
+const pathTablist = document.querySelector(".path-tabs");
+const pathPanel = document.getElementById("path-panel");
+const pathLive = document.getElementById("path-live");
 const pathTabs = Array.from(document.querySelectorAll(".path-tab"));
 const filterButtons = Array.from(document.querySelectorAll(".filter-button"));
 const tweakCards = Array.from(document.querySelectorAll(".tweak-card"));
@@ -111,11 +114,48 @@ const renderPath = (key) => {
     }),
   );
 
+  let activeTab = null;
   pathTabs.forEach((tab) => {
     const active = tab.dataset.path === key;
     tab.classList.toggle("is-active", active);
     tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+    if (active) {
+      activeTab = tab;
+    }
   });
+
+  if (activeTab && pathPanel) {
+    pathPanel.setAttribute("aria-labelledby", activeTab.id);
+  }
+
+  if (pathLive && activeTab) {
+    pathLive.textContent = `${activeTab.textContent.trim()}. ${data.title}`;
+  }
+};
+
+const movePathTab = (current, key) => {
+  const index = pathTabs.indexOf(current);
+  if (index < 0) {
+    return;
+  }
+
+  let next = index;
+  if (key === "ArrowRight") {
+    next = (index + 1) % pathTabs.length;
+  } else if (key === "ArrowLeft") {
+    next = (index - 1 + pathTabs.length) % pathTabs.length;
+  } else if (key === "Home") {
+    next = 0;
+  } else if (key === "End") {
+    next = pathTabs.length - 1;
+  } else {
+    return;
+  }
+
+  const nextTab = pathTabs[next];
+  renderPath(nextTab.dataset.path);
+  nextTab.focus();
 };
 
 const filterTweaks = (filter) => {
@@ -127,8 +167,25 @@ const filterTweaks = (filter) => {
   filterButtons.forEach((button) => {
     const active = button.dataset.filter === filter;
     button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
   });
 };
+
+if (pathTablist) {
+  pathTablist.addEventListener("keydown", (event) => {
+    const tab = event.target.closest("[data-path]");
+    if (!tab || pathTabs.indexOf(tab) < 0) {
+      return;
+    }
+
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") {
+      return;
+    }
+
+    event.preventDefault();
+    movePathTab(tab, event.key);
+  });
+}
 
 document.addEventListener("click", (event) => {
   if (menuToggle && (event.target === menuToggle || menuToggle.contains(event.target))) {
