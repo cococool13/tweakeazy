@@ -24,14 +24,14 @@ const pathData = {
     ],
   },
   aggressive: {
-    label: "Maximum scripted tuning",
-    title: "Apply the full stack only after reading the warnings.",
+    label: "Trade-offs off by default",
+    title: "Apply Safe and Advanced phases only after reading the warnings.",
     description:
-      "Apply Everything combines power, services, registry, GPU, network, cleanup, and Security Trade-off phases.",
+      "Apply Everything runs power, services, registry, GPU, network, and cleanup. Phases 9 and 10 (Windows Update suppression, and VBS, HVCI, LSA, and Spectre) are Security Trade-off and run only with -IncludeSecurityTradeoffs.",
     command: 'cd "<path-to-repo>"\n.\\APPLY-EVERYTHING.ps1',
     steps: [
       "Create the backup and restore point first.",
-      "Read GUIDE.md and the Security Trade-off section.",
+      "Read GUIDE.md. The command shown leaves Security Trade-off phases off.",
       "Run verify after apply, then reboot when prompted.",
     ],
   },
