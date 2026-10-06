@@ -17,9 +17,9 @@
     action + every skip to ProgramData\<toolkit>\logs\..."
 
     Known-good exclusions (with reason):
-      - DduManual.ps1 — standalone DDU staging script; intentionally
-        does NOT use lib/toolkit-state. Logs to its own DDU-Auto.log
-        transcript inside the resume-script heredoc body.
+      none. DduManual.ps1 used to be excluded (own DDU-Auto.log
+      transcript). It now calls Initialize-ToolkitState before the
+      tracked SearchOrderConfig write, so the invariant covers it.
 
 .NOTES
     # CROSS-PLATFORM-NOTE
@@ -34,7 +34,8 @@ BeforeDiscovery {
     # Acknowledged exceptions to the invariant — keep this list small
     # and re-justified each time. Format: relative path from repo root.
     $script:KnownExcluded = @(
-        'DduManual.ps1'  # See file header — independent transcript path
+        # DduManual.ps1 used to live here (own transcript). It now calls
+        # Initialize-ToolkitState before the tracked SearchOrderConfig write.
     )
 
     # Discover mutators by re-using Test-ToolkitInvariants' classifier

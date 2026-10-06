@@ -172,6 +172,7 @@ Quick reads on the post-apply VM:
 
 - [ ] **16.1** From the launcher, navigate `[9]` → `chris-titus-winutil.bat`. The script downloads, prints both SHA-256 values, compares them, and only continues on match.
 - [ ] **16.2** `DduManual.ps1` (run directly) writes a `Settings.xml` next to the DDU executable. Open it in Notepad — the `<DisplayDriverUninstaller Version=...>` header is present (legacy schema requirement, OK to be hardcoded; documented in `CHANGES.md`).
+- [ ] **16.3** Driver search around DDU (code-complete, runtime-pending). Before `DduManual.ps1`, record `reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" /v SearchOrderConfig`. After DDU exits, the live value matches that reading. In `%ProgramData%\Win11GamingToolkit\state\manifest.json`, `state.registry["reg:DriverSearchOrderConfig"].before` is the value from the first toolkit write. Run again after Apply Everything has set the value to 0: it stays 0, and `before` does not change. Repeat with `DduAuto.ps1` — the Safe Mode resume script restores the same way after DDU exits.
 
 ---
 
