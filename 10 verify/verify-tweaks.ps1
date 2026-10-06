@@ -125,9 +125,23 @@ Check "Background apps disabled" {
     (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -ErrorAction SilentlyContinue).GlobalUserDisabled -eq 1
 } "reg:GlobalUserDisabled"
 
+# HwSchMode is one GraphicsDrivers value. Every writer tracks it as
+# reg:HwSchMode (Apply, GPU configure, the hags pair). Vendor ids
+# nv:HwSchMode / amd:HwSchMode / intel:HwSchMode are retired: capture-once
+# is per id, so those entries can store the post-apply value 2 as the
+# original. This check keys only reg:HwSchMode.
 Check "Hardware Accelerated GPU Scheduling enabled" {
     (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name "HwSchMode" -ErrorAction SilentlyContinue).HwSchMode -eq 2
 } "reg:HwSchMode"
+UI-Note -Message "HwSchMode rollback id is reg:HwSchMode only (not nv:/amd:/intel:)."
+if ($manifest -and $manifest.PSObject.Properties["registry"] -and $manifest.registry) {
+    foreach ($retiredHwSchId in @("nv:HwSchMode", "amd:HwSchMode", "intel:HwSchMode")) {
+        if (Test-ToolkitMapHasKey -Map $manifest.registry -Key $retiredHwSchId) {
+            UI-Note -Message "Retired manifest id $retiredHwSchId ignored. Its captured original can be post-apply value 2; vendor revert does not restore it." -Color $script:UI_Warning
+            $warn++
+        }
+    }
+}
 
 Check "Notifications suppressed" {
     (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings" -Name "NOC_GLOBAL_SETTING_TOASTS_ENABLED" -ErrorAction SilentlyContinue).NOC_GLOBAL_SETTING_TOASTS_ENABLED -eq 0

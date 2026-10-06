@@ -270,6 +270,8 @@ Run-Step "Disable background apps" {
 }
 
 Run-Step "Enable Hardware Accelerated GPU Scheduling" {
+    # One value, one id. GPU configure and enable/disable-hags use this
+    # same id. A vendor-prefixed id captures post-apply value 2.
     Set-TrackedRegistry -Id "reg:HwSchMode" -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name "HwSchMode" -Value 2 -Type "DWord" -Tier "Advanced" -Step "windows-settings"
 }
 
