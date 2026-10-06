@@ -171,7 +171,7 @@ Check "Edge background mode disabled" {
     (Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "BackgroundModeEnabled" -ErrorAction SilentlyContinue).BackgroundModeEnabled -eq 0
 } "reg:EdgeBackgroundModeEnabled"
 
-# Opt-in script only (disable-storage-sense.ps1). Not part of Apply All.
+# Opt-in only. Apply All does not write reg:StorageSenseMaster.
 Check "Storage Sense disabled" {
     # Per-user toggle; value name is the literal string "01" (DWORD).
     (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy" -Name "01" -ErrorAction SilentlyContinue)."01" -eq 0
