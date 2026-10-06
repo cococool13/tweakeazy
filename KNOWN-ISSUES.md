@@ -325,7 +325,17 @@ preserved for clarity but the dot-source now actually loads
 cosmetic settings (dark mode, taskbar, explorer flags). High-impact HKLM
 keys were migrated to `Set-ToolkitRegistryValue` in commit `40630c3`; the
 HKCU writes remain because they're user-toggleable via Windows Settings
-without manifest restore. v1.1 migration target.
+without manifest restore. v1.1 migration target. Do not pull those HKCU
+writes into a manifest pass early.
+
+The five HKLM ids from that migration now restore from the manifest
+before any hardcoded default: `reg:DriverSearchOrderConfig`,
+`reg:HiberbootEnabled`, `reg:PowerThrottlingOff`,
+`reg:Win32PrioritySeparation`, `reg:AllowTelemetry`. Power-plan scripts
+write the same `reg:` id for Hiberboot and power throttling (no second
+`pwr:` writer). A legacy `pwr:` entry is read only when the `reg:` id
+is absent. Verify on Windows via checklist **12.5** (code-complete,
+runtime-pending).
 
 #### Per-script Pester suites  *(suite size matches the fourth-loop gate)*
 

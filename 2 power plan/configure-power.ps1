@@ -231,7 +231,9 @@ Run-Step "Hibernate: off" {
 }
 
 Run-Step "Fast Startup: disabled" {
-    Set-ToolkitRegistryValue -Id "pwr:HiberbootEnabled" `
+    # Same id APPLY-EVERYTHING uses. A second id would snapshot the
+    # already-tweaked value as before when both scripts run.
+    Set-ToolkitRegistryValue -Id "reg:HiberbootEnabled" `
         -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" `
         -Name "HiberbootEnabled" -Value 0 -Type "DWord" -Tier "Safe" -Step $stepName
     Set-ToolkitRegistryValue -Id "pwr:HibernateEnabled" `
@@ -298,7 +300,8 @@ Run-Step "Adaptive brightness: off" {
 }
 
 Run-Step "Power throttling: disabled" {
-    Set-ToolkitRegistryValue -Id "pwr:PowerThrottlingOff" `
+    # Same id APPLY-EVERYTHING uses. See Fast Startup note above.
+    Set-ToolkitRegistryValue -Id "reg:PowerThrottlingOff" `
         -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" `
         -Name "PowerThrottlingOff" -Value 1 -Type "DWord" -Tier "Safe" -Step $stepName
 }

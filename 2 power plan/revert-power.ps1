@@ -12,11 +12,13 @@
     as the universal-known-good default.
 
     Also reverts the auxiliary settings configure-power flipped:
-      - Fast Startup re-enabled (HiberbootEnabled = 1)
+      - Fast Startup restored from reg:HiberbootEnabled (legacy
+        pwr:HiberbootEnabled only when the reg: id was never captured;
+        hardcoded 1 when neither id exists)
       - Hibernate re-enabled (powercfg /hibernate on)
-      - PowerThrottling override removed
-    Manifest-tracked registry values restore via Set-ToolkitRegistryValue;
-    untracked tweaks fall back to OS defaults.
+      - PowerThrottling restored from reg:PowerThrottlingOff the same way
+    Hiberboot and power throttling share ids with APPLY-EVERYTHING so a
+    second writer cannot save the already-tweaked value as before.
 
     Each powercfg and registry call is gated by $PSCmdlet.ShouldProcess
     so -WhatIf previews the revert plan without modifying the system.
@@ -99,12 +101,14 @@ if (-not $PSCmdlet.ShouldProcess("Power plan", "powercfg /setactive $setActiveTa
 }
 
 Write-Host "  Re-enabling Fast Startup..." -NoNewline
-if (-not $PSCmdlet.ShouldProcess("HiberbootEnabled = 1", "Set-ToolkitRegistryValue")) {
+if (-not $PSCmdlet.ShouldProcess("reg:HiberbootEnabled", "Restore from manifest or set default 1")) {
     Write-Host " Skipped (-WhatIf)" -ForegroundColor Gray
 } else {
-    Set-ToolkitRegistryValue -Id "pwr:HiberbootEnabled" `
-        -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" `
-        -Name "HiberbootEnabled" -Value 1 -Type "DWord" -Tier "Safe" -Step "power-revert" | Out-Null
+    if (-not (Restore-ToolkitRegistryValue -Id "reg:HiberbootEnabled")) {
+        if (-not (Restore-ToolkitRegistryValue -Id "pwr:HiberbootEnabled")) {
+            reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v "HiberbootEnabled" /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+        }
+    }
     Set-ToolkitRegistryValue -Id "pwr:HibernateEnabled" `
         -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power" `
         -Name "HibernateEnabled" -Value 1 -Type "DWord" -Tier "Safe" -Step "power-revert" | Out-Null
@@ -112,11 +116,15 @@ if (-not $PSCmdlet.ShouldProcess("HiberbootEnabled = 1", "Set-ToolkitRegistryVal
 }
 
 Write-Host "  Removing power throttling override..." -NoNewline
-if (-not $PSCmdlet.ShouldProcess("PowerThrottlingOff", "Remove-ItemProperty")) {
+if (-not $PSCmdlet.ShouldProcess("reg:PowerThrottlingOff", "Restore from manifest or remove override")) {
     Write-Host " Skipped (-WhatIf)" -ForegroundColor Gray
 } else {
-    Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" `
-        -Name "PowerThrottlingOff" -ErrorAction SilentlyContinue
+    if (-not (Restore-ToolkitRegistryValue -Id "reg:PowerThrottlingOff")) {
+        if (-not (Restore-ToolkitRegistryValue -Id "pwr:PowerThrottlingOff")) {
+            Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" `
+                -Name "PowerThrottlingOff" -ErrorAction SilentlyContinue
+        }
+    }
     Write-Host " Done" -ForegroundColor Green
 }
 

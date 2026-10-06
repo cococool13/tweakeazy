@@ -94,6 +94,66 @@ Describe 'REVERT-EVERYTHING.ps1 — surface contract' {
         }
     }
 
+    Context 'Captured HKLM keys restore from the manifest first' {
+        # These five ids are written by APPLY via Set-ToolkitRegistryValue.
+        # Revert must read that before-state before any hardcoded default.
+        # Hiberboot and PowerThrottling also accept a legacy pwr: id when
+        # the reg: id was never captured (power-plan-only manifests).
+        It 'restores <Id> before its hardcoded fallback' -ForEach @(
+            @{ Id = 'reg:DriverSearchOrderConfig'; Fallback = 'SearchOrderConfig" /t REG_DWORD /d 1' }
+            @{ Id = 'reg:HiberbootEnabled'; Fallback = 'HiberbootEnabled" /t REG_DWORD /d 1' }
+            @{ Id = 'reg:PowerThrottlingOff'; Fallback = '/v "PowerThrottlingOff" /f' }
+            @{ Id = 'reg:Win32PrioritySeparation'; Fallback = 'Win32PrioritySeparation" /t REG_DWORD /d 2' }
+            @{ Id = 'reg:AllowTelemetry'; Fallback = 'AllowTelemetry" /t REG_DWORD /d 1' }
+        ) {
+            $lines = $script:Content -split "`n"
+            $restore = $lines | Select-String -Pattern ('Restore-ToolkitRegistryValue -Id "{0}"' -f $Id) | Select-Object -First 1
+            $fallback = $lines | Select-String -Pattern ([regex]::Escape($Fallback)) | Select-Object -First 1
+            $restore | Should -Not -BeNullOrEmpty
+            $fallback | Should -Not -BeNullOrEmpty
+            $restore.LineNumber | Should -BeLessThan $fallback.LineNumber
+        }
+
+        It 'tries legacy pwr: ids only after the shared reg: id is missing' -ForEach @(
+            @{ RegId = 'reg:HiberbootEnabled'; LegacyId = 'pwr:HiberbootEnabled' }
+            @{ RegId = 'reg:PowerThrottlingOff'; LegacyId = 'pwr:PowerThrottlingOff' }
+        ) {
+            $lines = $script:Content -split "`n"
+            $regLine = $lines | Select-String -Pattern ('Restore-ToolkitRegistryValue -Id "{0}"' -f $RegId) | Select-Object -First 1
+            $legacyLine = $lines | Select-String -Pattern ('Restore-ToolkitRegistryValue -Id "{0}"' -f $LegacyId) | Select-Object -First 1
+            $regLine | Should -Not -BeNullOrEmpty
+            $legacyLine | Should -Not -BeNullOrEmpty
+            $regLine.LineNumber | Should -BeLessThan $legacyLine.LineNumber
+        }
+    }
+
+    Context 'Power-plan scripts share one id per Hiberboot and PowerThrottling value' {
+        It 'configure-power writes the reg: ids and does not add a second writer' {
+            $configure = Get-Content -Raw -LiteralPath (Get-ToolkitScriptPath '2 power plan/configure-power.ps1')
+            $configure | Should -Match 'Set-ToolkitRegistryValue -Id "reg:HiberbootEnabled"'
+            $configure | Should -Match 'Set-ToolkitRegistryValue -Id "reg:PowerThrottlingOff"'
+            $configure | Should -Not -Match 'pwr:HiberbootEnabled'
+            $configure | Should -Not -Match 'pwr:PowerThrottlingOff'
+        }
+
+        It 'revert-power restores the shared reg: id before any legacy pwr: id' {
+            $revert = Get-Content -Raw -LiteralPath (Get-ToolkitScriptPath '2 power plan/revert-power.ps1')
+            $lines = $revert -split "`n"
+            $regHiber = $lines | Select-String -Pattern 'Restore-ToolkitRegistryValue -Id "reg:HiberbootEnabled"' | Select-Object -First 1
+            $legacyHiber = $lines | Select-String -Pattern 'Restore-ToolkitRegistryValue -Id "pwr:HiberbootEnabled"' | Select-Object -First 1
+            $regThrottle = $lines | Select-String -Pattern 'Restore-ToolkitRegistryValue -Id "reg:PowerThrottlingOff"' | Select-Object -First 1
+            $legacyThrottle = $lines | Select-String -Pattern 'Restore-ToolkitRegistryValue -Id "pwr:PowerThrottlingOff"' | Select-Object -First 1
+            $regHiber | Should -Not -BeNullOrEmpty
+            $legacyHiber | Should -Not -BeNullOrEmpty
+            $regThrottle | Should -Not -BeNullOrEmpty
+            $legacyThrottle | Should -Not -BeNullOrEmpty
+            $regHiber.LineNumber | Should -BeLessThan $legacyHiber.LineNumber
+            $regThrottle.LineNumber | Should -BeLessThan $legacyThrottle.LineNumber
+            $revert | Should -Not -Match 'Set-ToolkitRegistryValue -Id "pwr:HiberbootEnabled"'
+            $revert | Should -Not -Match 'Set-ToolkitRegistryValue -Id "pwr:PowerThrottlingOff"'
+        }
+    }
+
     Context 'Nagle revert prefers manifest (CURSOR-AUDIT #5)' {
         It 'restores tracked net:TcpAckFrequency / net:TCPNoDelay before blind remove' {
             # Pattern from dd5dc3e: foreach over $state.registry IDs matching
