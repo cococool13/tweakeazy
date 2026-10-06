@@ -16,11 +16,11 @@
 ::         A missing pin or SHA-256 mismatch aborts. Nothing runs.
 :: ============================================================
 
-:: Load UI helpers (ANSI colors)
-call "%~dp0..\lib\ui-helpers.bat"
-
-call :ui_header "Chris Titus Tech Windows Utility (WinUtil)"
-call :ui_admin_check
+:: Routines live in ui-helpers.bat. Pass the name; a label call
+:: resolves in this file and would skip the admin check.
+call "%~dp0..\lib\ui-helpers.bat" ui_header "Chris Titus Tech Windows Utility (WinUtil)"
+call "%~dp0..\lib\ui-helpers.bat" ui_admin_check
+if errorlevel 1 exit /b 1
 
 :: Version, URL, and SHA-256 live in versions.json (tools.winutil).
 :: Get-ToolManifest is the helper DDU uses: GitHub, then cache, then bundled.
@@ -69,7 +69,7 @@ if not defined WINUTIL_SHA256 (
     exit /b 1
 )
 
-call :ui_step_ok "Pinned WinUtil %WINUTIL_VERSION% from versions.json"
+call "%~dp0..\lib\ui-helpers.bat" ui_step_ok "Pinned WinUtil %WINUTIL_VERSION% from versions.json"
 
 echo   This will download and run WinUtil from GitHub release %WINUTIL_VERSION%.
 echo   %C_DIM%Nothing is permanently installed — it runs once and exits.%C_R%
@@ -106,7 +106,7 @@ if not exist "%WINUTIL_FILE%" (
     exit /b 1
 )
 
-call :ui_step_ok "Downloaded to %WINUTIL_FILE%"
+call "%~dp0..\lib\ui-helpers.bat" ui_step_ok "Downloaded to %WINUTIL_FILE%"
 
 for /f "tokens=*" %%h in ('powershell -NoProfile -Command "(Get-FileHash -Algorithm SHA256 '%WINUTIL_FILE%').Hash.ToLowerInvariant()"') do set "WINUTIL_HASH=%%h"
 echo.
@@ -121,7 +121,7 @@ if /I not "%WINUTIL_HASH%"=="%WINUTIL_SHA256%" (
     exit /b 1
 )
 
-call :ui_step_ok "SHA-256 verified"
+call "%~dp0..\lib\ui-helpers.bat" ui_step_ok "SHA-256 verified"
 
 echo   %C_WARN%SECURITY: The verified script has been saved locally. You can review it%C_R%
 echo   %C_WARN%before running. To review: open the file in a text editor.%C_R%
