@@ -19,8 +19,9 @@ Thumbs.db
 coverage.xml
 
 # Claude Code per-machine settings + Cursor rules (dev-machine local
-# overrides; don't ship with the repo).
-.claude/
+# overrides; don't ship with the repo). The shared CI hook config is tracked.
+.claude/*
+!.claude/settings.json
 .cursorrules
 
 # Wrangler's local cache for site/ deploys. Holds an account-scoped

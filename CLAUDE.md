@@ -10,6 +10,8 @@ this repo can be executed or runtime-tested from here — `MANUAL-TEST-CHECKLIST
 is the human gate before any new tag. Never claim a change is "tested" without a
 checklist run; mark it "code-complete, runtime-pending."
 
+Checks run on this Mac too. `just check` before claiming done (same command as pre-push and `ship`: the PSScriptAnalyzer + Pester gate, the site asset check, gitleaks); `just check-fast` while working. Never `--no-verify`. Land work only with `.ci/bin/ship`: it checks the exact commit, posts `ci/just-check`, and merges or labels the PR `needs-cohen` (CI, hooks, workflows, release paths). GitHub Actions still run here (public repo), and merging a `site/` change to main deploys it through `deploy-site.yml`.
+
 ## Core invariants (do not violate)
 
 1. **Every tweak declares a risk tier**: `Safe` / `Advanced` / `Security Trade-off`.

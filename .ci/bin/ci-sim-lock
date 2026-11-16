@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# ci-sim-lock <command...>
+# Runs a simulator/xcodebuild test command while holding a machine-wide lock,
+# so `just check` in several repos (or several agents) never drives the same
+# simulator at once. Waits for the holder; takes over a lock whose process died.
+set -euo pipefail
+lock="${XDG_CACHE_HOME:-$HOME/.cache}/ci/locks/simulator"
+mkdir -p "$(dirname "$lock")"
+waited=0
+until mkdir "$lock" 2>/dev/null; do
+  holder="$(cat "$lock/pid" 2>/dev/null || true)"
+  if [[ -n "$holder" ]] && ! kill -0 "$holder" 2>/dev/null; then
+    rm -f "$lock/pid"; rmdir "$lock" 2>/dev/null || true
+    continue
+  fi
+  (( waited % 30 == 0 )) && echo "ci-sim-lock: waiting for pid ${holder:-?} ($(cat "$lock/what" 2>/dev/null || echo '?'))" >&2
+  sleep 1; waited=$((waited + 1))
+done
+echo $$ >"$lock/pid"
+echo "$(basename "$PWD"): $*" >"$lock/what"
+trap 'rm -f "$lock/pid" "$lock/what"; rmdir "$lock" 2>/dev/null || true' EXIT
+"$@"
