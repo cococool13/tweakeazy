@@ -1,0 +1,13 @@
+# Install once per clone, and again when this file changes: lefthook install
+pre-commit:
+  commands:
+    gitleaks:
+      run: gitleaks protect --staged --no-banner
+
+# Pre-push runs `just check` on each pushed commit (skipped when that commit
+# already passed). Same command as agents and ship.
+pre-push:
+  commands:
+    check:
+      use_stdin: true
+      run: .ci/bin/ci-pre-push
