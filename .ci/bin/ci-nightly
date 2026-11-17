@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ci-nightly [repo-dir...]   (default: every git repo directly under ~/Projects with a justfile)
 # For each repo, on origin/<default> in ci-check's cached worktree:
-#   just check, then just gitleaks-full and just tla-full when the repo has them.
+#   just check, then every `*-full` recipe the repo defines.
 # Writes ~/Projects/_ops/reports/ci/nightly/<date>.md. Never pushes, merges or deploys.
 set -uo pipefail
 out_dir="${CI_NIGHTLY_DIR:-$HOME/Projects/_ops/reports/ci/nightly}"
@@ -37,9 +37,9 @@ for repo in "${repos[@]}"; do
     wt="$cache/worktrees/$slug"
     [[ "$(git -C "$repo" rev-parse HEAD)" == "$sha" && -z "$(git -C "$repo" status --porcelain)" ]] && wt="$repo"
     if [[ -d "$wt" ]]; then
-      summary=" $(cd "$wt" && just --summary 2>/dev/null) "
-      for extra in gitleaks-full tla-full; do
-        [[ "$summary" == *" $extra "* ]] || continue
+      # Every `*-full` recipe: the slow, input-gated steps `check` skips (gitleaks-full,
+      # tla-full, app-full, bench-full...).
+      for extra in $(cd "$wt" && just --summary 2>/dev/null | tr ' ' '\n' | grep -E -- '-full$'); do
         (cd "$wt" && just "$extra") || { [[ "$result" == pass ]] && result=""; result="${result:+$result, }$extra FAILED"; }
       done
     fi

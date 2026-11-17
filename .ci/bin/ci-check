@@ -15,10 +15,20 @@ cache="${XDG_CACHE_HOME:-$HOME/.cache}/ci"
 slug="$(git -C "$root" remote get-url origin 2>/dev/null | sed -E 's#.*github\.com[:/]##; s#\.git$##; s#/#__#')"
 slug="${slug:-$(basename "$root")}"
 receipt="$cache/receipts/$slug/$sha"
+# Same tree = same files = same result: an amended message, a squash-merge of an
+# up-to-date PR, or a revert-of-revert reuses the earlier pass.
+tree_receipt="$cache/receipts/$slug/tree-$(git -C "$root" rev-parse "$sha^{tree}")"
 
-if [[ -f "$receipt" && "${CI_FORCE:-0}" != 1 ]]; then
-  echo "ci: $sha already passed ($(cat "$receipt"))"
-  exit 0
+if [[ "${CI_FORCE:-0}" != 1 ]]; then
+  if [[ -f "$receipt" ]]; then
+    echo "ci: $sha already passed ($(cat "$receipt"))"
+    exit 0
+  fi
+  if [[ -f "$tree_receipt" ]]; then
+    echo "$(cat "$tree_receipt") (same tree)" >"$receipt"
+    echo "ci: $sha has the same tree as a commit that passed ($(cat "$tree_receipt"))"
+    exit 0
+  fi
 fi
 
 dir="$root"
@@ -42,4 +52,5 @@ s=$EPOCHREALTIME
 secs="$(printf '%.0f' "$(bc <<<"$EPOCHREALTIME - $s")")"
 mkdir -p "$(dirname "$receipt")"
 echo "pass ${secs}s $(hostname -s) $(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$receipt"
+cp "$receipt" "$tree_receipt"
 echo "ci: PASS $sha in ${secs}s"
