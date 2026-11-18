@@ -91,7 +91,6 @@ Numbered folders (`0 prerequisites/` → `10 verify/`) hold per-phase scripts.
 ## Conventions
 
 - **Commits**: conventional (`feat:` / `fix:` / `docs:` / `chore:` / `refactor:` / `perf:`).
-  Attribution disabled globally.
 - **Line endings**: CRLF for `.ps1` `.bat` `.cmd` `.reg`; LF for `.md` `.json` `.yml`
   (enforced by `.gitattributes`).
 - **Per-file headers**: scripts ported from upstream must carry
@@ -105,12 +104,8 @@ Numbered folders (`0 prerequisites/` → `10 verify/`) hold per-phase scripts.
 - **Anti-cheat warnings**: any script touching VBS / HVCI / LSA-PPL / Spectre
   mitigations / kernel timer resolution must include a header comment noting
   potential BattlEye / EAC impact (R6 Siege and similar titles on 24H2+).
-- **Architecture-over-wiring**: a fix that touches 3+ scripts mechanically is
-  a signal to STOP and find the single-point upstream change (probably a
-  missing `lib/` helper). Commit the helper + behavioral tests first; per-
-  caller refactors land in follow-up commits with measurable diff shrink.
-  Mark architecture commits `arch(<lib>): <change> — replaces N call-site
-  edits, covers future M`.
+- **Architecture-over-wiring**: if a fix repeats mechanically across 3+
+  scripts, prefer one `lib/` helper with tests.
 - **Invariants ship with a tracked gap list, not silenced**: each invariant
   Pester suite in `tests/invariants/` includes a `$KnownGaps` array. Real
   violations are added there (visible in test output as `Set-ItResult
@@ -131,16 +126,8 @@ Numbered folders (`0 prerequisites/` → `10 verify/`) hold per-phase scripts.
 
 ## Known gotchas
 
-- **Don't shadow PowerShell automatic variables.** PSSA's
-  `PSAvoidAssignmentToAutomaticVariable` catches the common cases at gate
-  time, but the cost is wasted dev cycles. Top offenders we've hit:
-    - `$matches` — populated by `-match` operator (use `$pkgMatches`,
-      `$results`, etc.)
-    - `$pid` — current process ID (use `$devPid` for device PIDs)
-    - `$profile` — user profile script path (use `$machineProfile`)
-    - `$error` — error array (use `$errors` if you need it as a variable)
-    - `$host` — host UI object (don't reuse for anything else)
-  Test files inherit the same rule.
+- **Don't assign to PowerShell automatic variables** (`$matches`, `$pid`,
+  `$profile`, `$error`, `$host`); PSSA fails the gate.
 - **WaaSMedicSvc on Win11 24H2 / 25H2**: DACL blocks even SYSTEM from setting
   `Start = 4`. `disable-windows-update.ps1` detects this and warns rather than
   failing. The recovery path (manual `takeown` / `icacls`) is documented in
