@@ -7,7 +7,7 @@
 > These actions are cancelled, even where the archive text below still mentions them:
 >
 > - Do not delete `website/` or `site/`. The landing site lives in `site/` and stays.
-> - Do not remove site deploy workflows. `.github/workflows/deploy-site.yml` stays.
+> - Do not remove the site deploy. The `just deploy-site` recipe stays.
 > - Do not read, write, or recreate `CHANGES.md`, `CODEX-AUDIT.md`, `CLEANUP.md`, `CURSOR-AUDIT.md`, `SESSION-REPORT.md`, or `prompts/README.md`. Those audit docs were folded into `KNOWN-ISSUES.md` and `CHANGELOG.md` and must not be recreated (`CLAUDE.md`).
 
 Archived task (already finished): the v1.0.0 production-readiness pass. Three predecessor agents had already run. The filenames below are a record of what those passes wrote. Several were later removed. Do not recreate them.
@@ -66,7 +66,7 @@ The previous pass merged 26 commits and rewrote a 562-line launcher. Confirm not
    ```
    Confirm `$script:ToolkitLogRoot` is consumed where it should be (launcher's `[L]` View recent log) and that nothing else relied on a previous export shape.
 
-4. **Old `website/` residue** — historical check only. That Next.js tree is already gone. Do not delete `site/`. Do not remove `.github/workflows/deploy-site.yml`. Do not treat files under `site/` as residue to delete.
+4. **Old `website/` residue** — historical check only. That Next.js tree is already gone. Do not delete `site/`. Do not remove the `just deploy-site` recipe. Do not treat files under `site/` as residue to delete.
 
 5. **Tier string consistency**:
    ```bash

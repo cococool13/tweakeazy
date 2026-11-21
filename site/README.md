@@ -8,18 +8,17 @@ this folder is exactly what gets served.
 
 ## Deploying
 
-A push to `main` that touches `site/**` publishes it. Toolkit-only commits do
-not redeploy the page.
+Nothing deploys automatically. Pushing to `main` doesn't publish the site.
 
-To publish by hand:
+Publish by hand from the repo root. This is a production deploy, so get Cohen's yes first.
 
 ```bash
-npx wrangler@4 pages deploy site --project-name=tweakeazy --branch=main
+just deploy-site
 ```
 
-`--branch=main` is what makes it a production deploy. Leave it off and Pages
-files the upload as a preview, which succeeds, prints a URL, and never moves
-the live site.
+`just deploy-site` runs the site asset check first. It stops unless the checkout is exactly `origin/main` and `site/` has no local changes. Then it uploads `site/` to the Cloudflare Pages project `tweakeazy` with `--branch=main`.
+
+Without `--branch`, Wrangler uses the current git branch name. On `main`, that still deploys to production. For a preview, run Wrangler by hand with a non-production branch like `--branch=preview`.
 
 ## `_headers`
 
