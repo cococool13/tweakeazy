@@ -4,8 +4,8 @@
     Run the Win11 Gaming Toolkit quality gate: PSScriptAnalyzer + Pester.
 
 .DESCRIPTION
-    Single entrypoint for the CI/CD quality gate. Equivalent to what
-    .github/workflows/ci.yml runs. Exits non-zero on any analyzer
+    Single entrypoint for the quality gate. `just check` runs it (as
+    the analyzer and pester recipes). Exits non-zero on any analyzer
     Error severity, or any Pester failure.
 
     Use locally:

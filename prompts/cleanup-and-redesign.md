@@ -7,7 +7,7 @@
 > These actions are cancelled, even where the archive text below still mentions them:
 >
 > - Do not delete `website/` or `site/`. The landing site lives in `site/` and stays.
-> - Do not remove site deploy workflows. `.github/workflows/deploy-site.yml` stays.
+> - Do not remove the site deploy. The `just deploy-site` recipe stays.
 > - Do not read, write, or recreate `CHANGES.md`, `CODEX-AUDIT.md`, `CLEANUP.md`, `CURSOR-AUDIT.md`, `SESSION-REPORT.md`, or `prompts/README.md`. Those audit docs were folded into `KNOWN-ISSUES.md` and `CHANGELOG.md` and must not be recreated (`CLAUDE.md`).
 
 Archived task (already finished): consolidate branches, remove the old Next.js tree that used to live at `website/`, prune dead files, redesign `launcher.ps1`. Do not run it again.
@@ -47,7 +47,7 @@ Goal: single `main` branch with all good work merged. Stale branches gone, local
 
 This phase already ran. The old Next.js tree at `website/` is gone. That record is not a task.
 
-Leave `site/` in place. Leave `.github/workflows/deploy-site.yml` in place. Do not delete either. Do not strip the current landing site out of `README.md`, `GUIDE.md`, `.gitignore`, or workflow files.
+Leave `site/` in place. Leave the `just deploy-site` recipe in place. Do not delete either. Do not strip the current landing site out of `README.md`, `GUIDE.md`, `.gitignore`, or workflow files.
 
 ## Phase 3 — Dead file cleanup
 

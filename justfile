@@ -1,7 +1,7 @@
 # CI contract. Agents, the pre-push hook and `ship` all run `just check`.
 # Kit: .ci/ (vendored with ci-sync; `just ci-drift` shows drift).
-# GitHub Actions still run here too (public repo): ci.yml runs the same gate on
-# ubuntu and windows, and deploy-site.yml publishes site/ from main.
+# No GitHub Actions: checks run only on this Mac, and site/ deploys by hand
+# with `just deploy-site`.
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 check:
@@ -28,7 +28,7 @@ fix:
 
 test: pester
 
-# ci.yml: tools/Invoke-ToolkitGate.ps1, split in two so they run in parallel.
+# tools/Invoke-ToolkitGate.ps1, split in two so they run in parallel.
 # Needs pwsh with PSScriptAnalyzer and Pester 5 installed.
 analyzer:
     pwsh -NoProfile -File tools/Invoke-ToolkitGate.ps1 -SkipTests
@@ -36,7 +36,7 @@ analyzer:
 pester:
     pwsh -NoProfile -File tools/Invoke-ToolkitGate.ps1 -SkipAnalyzer
 
-# deploy-site.yml: every local asset site/index.html references exists.
+# Every local asset site/index.html references exists.
 site:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -48,6 +48,12 @@ site:
     done < <(grep -ohE '(href|src)="[^"]+"' site/index.html | sed -E 's/.*="([^"]+)".*/\1/' | grep -vE '^(https?:|//|#|mailto:|data:)' || true)
     [ "$missing" -eq 0 ] && echo "all referenced assets present"
     exit "$missing"
+
+# Publish site/ to the Cloudflare Pages project `tweakeazy` (production).
+# Needs Cohen's yes. `--branch=main` marks it production; without it Pages
+# files the upload as a preview. Uses wrangler login or CLOUDFLARE_* env.
+deploy-site: site
+    npx --yes wrangler@4 pages deploy site --project-name=tweakeazy --branch=main
 
 # Full history, with the repo's .gitleaks.toml when there is one.
 gitleaks:

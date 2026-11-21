@@ -1,8 +1,8 @@
 version: 2
 
-# The toolkit itself is PowerShell with no package manager, so GitHub Actions
-# is the only ecosystem here with dependencies to track. Grouped so routine
-# bumps arrive as one PR rather than one per action.
+# The toolkit itself is PowerShell with no package manager. GitHub Actions is
+# disabled and has no workflows left, so this tracks nothing until one returns.
+# Grouped so routine bumps arrive as one PR rather than one per action.
 updates:
   - package-ecosystem: github-actions
     directory: /
