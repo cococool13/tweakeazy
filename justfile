@@ -52,7 +52,11 @@ site:
 # Publish site/ to the Cloudflare Pages project `tweakeazy` (production).
 # Needs Cohen's yes. `--branch=main` marks it production; without it Pages
 # files the upload as a preview. Uses wrangler login or CLOUDFLARE_* env.
+# Wrangler uploads the working tree, so refuse anything but a clean origin/main.
 deploy-site: site
+    git fetch -q origin main
+    test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || { echo "deploy-site: check out origin/main first" >&2; exit 1; }
+    test -z "$(git status --porcelain --untracked-files=all -- site)" || { echo "deploy-site: site/ has local changes" >&2; exit 1; }
     npx --yes wrangler@4 pages deploy site --project-name=tweakeazy --branch=main
 
 # Full history, with the repo's .gitleaks.toml when there is one.
